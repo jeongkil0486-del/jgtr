@@ -137,11 +137,12 @@
 const ADMIN_PASSWORD = "0501";
 const GOOGLE_TTS_KEY = 'AIzaSyDPwwNLJSnPoADJn41CuZevx7j6-KWRwiQ';
 
+// 중국어(zh-CN) 음성 엔진을 본토 원어민 아나운서 스타일인 최신형 WaveNet-C 여성 보이스로 변경했습니다.
 const GOOGLE_VOICES = {
     'ko-KR':{ languageCode:'ko-KR', name:'ko-KR-Wavenet-A', ssmlGender:'FEMALE' },
     'ja-JP':{ languageCode:'ja-JP', name:'ja-JP-Wavenet-B', ssmlGender:'FEMALE' },
     'en-US':{ languageCode:'en-US', name:'en-US-Wavenet-F', ssmlGender:'FEMALE' },
-    'zh-CN':{ languageCode:'cmn-CN', name:'cmn-CN-Neural2-D', ssmlGender:'FEMALE' },
+    'zh-CN':{ languageCode:'zh-CN', name:'zh-CN-Wavenet-C', ssmlGender:'FEMALE' },
 };
 
 let isPaused=false, currentSentenceIndex=0, speechParts=[];
@@ -432,6 +433,11 @@ function buildSpeechParts(fullText){
             const segs=para.replace(/\n/g,'').split(/([。！？])/);let acc="";
             segs.forEach(p=>{if(!p)return;if(/^[。！？]$/.test(p)){if(acc.trim()){parts.push({text:acc.trim()+p,lang:'ja-JP',pauseAfter:900});acc="";}}else acc+=p;});
             if(acc.trim()) parts.push({text:acc.trim(),lang:'ja-JP',pauseAfter:1200});
+        } else if(lang==='zh-CN'){
+            // 중국어 본토 억양 처리를 위해 단락 구별 추가
+            const segs=para.replace(/\n/g,'').split(/([。！？,，])/);let acc="";
+            segs.forEach(p=>{if(!p)return;if(/^[。！？,，]$/.test(p)){if(acc.trim()){parts.push({text:acc.trim()+p,lang:'zh-CN',pauseAfter:800});acc="";}}else acc+=p;});
+            if(acc.trim()) parts.push({text:acc.trim(),lang:'zh-CN',pauseAfter:1200});
         } else {
             para.split('\n').forEach(line=>{
                 if(!line.trim()) return;
