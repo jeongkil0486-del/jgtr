@@ -238,24 +238,16 @@ function lockTemplate(){
 }
 function resetDefaultTemplate(){if(confirm("기본 양식으로 복원하시겠습니까?")){localStorage.removeItem(getStorageKey());loadTemplate();}}
 
-// ── 공란 변수 추출 ──────────────────────────────────────
+// ── 공란 변수 추출 — [ ] 형태만 공란으로 인식 ──────────
 function extractVariables(template){
     const seen=new Map();
-    [[/\[([^\]]+)\]/g],[/\(([^)]+)\)/g],[/（([^）]+)）/g],[/\{([^}]+)\}/g]].forEach(([re])=>{
-        let m; re.lastIndex=0;
-        while((m=re.exec(template))!==null){
-            const raw=m[1].trim();
-            const canon=raw;
-            if(!seen.has(canon)) seen.set(canon,raw);
-        }
-    });
-    // 같은 의미의 변수 묶기 (편명, flight 등)
-    const grouped=new Map();
-    seen.forEach((label,key)=>{
-        const base=key.replace(/^(flight|フライト|航班号)$/i,'편명').replace(/^(destination|目的地|目的地)$/i,'목적지');
-        if(!grouped.has(base)) grouped.set(base,label);
-    });
-    return Array.from(grouped.entries()).map(([k,l])=>({key:k,label:l}));
+    const re=/\[([^\]]+)\]/g;
+    let m;
+    while((m=re.exec(template))!==null){
+        const raw=m[1].trim();
+        if(!seen.has(raw)) seen.set(raw,raw);
+    }
+    return Array.from(seen.entries()).map(([k,l])=>({key:k,label:l}));
 }
 
 function renderDynamicInputs(){
@@ -339,10 +331,13 @@ function composeFinalScript(){
         const en=vals?vals.en:ko;
         const ja=vals?vals.ja:ko;
         const zh=vals?vals.zh:ko;
-        // 모든 브래킷 형태 치환
+        // [변수명] → 한국어
         t=t.replace(new RegExp(`\\[${escRe(v.key)}\\]`,'g'),ko);
+        // (변수명) → 영어 (반각)
         t=t.replace(new RegExp(`\\(${escRe(v.key)}\\)`,'g'),en);
+        // （변수명） → 일본어 (전각)
         t=t.replace(new RegExp(`（${escRe(v.key)}）`,'g'),ja);
+        // {변수명} → 중국어
         t=t.replace(new RegExp(`\\{${escRe(v.key)}\\}`,'g'),zh);
     });
     document.getElementById('scriptPreview').innerText=t;
