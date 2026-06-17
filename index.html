@@ -685,117 +685,170 @@
         document.getElementById('scriptPreview').innerText = template;
     }
 
+    const GOOGLE_TTS_KEY = 'AIzaSyDPwwNLJSnPoADJn41CuZevx7j6-KWRwiQ';
+
+    // 언어별 Google TTS 음성 설정 (WaveNet = 고품질)
+    const GOOGLE_VOICES = {
+        'ko-KR': { languageCode: 'ko-KR', name: 'ko-KR-Wavenet-A', ssmlGender: 'FEMALE' },
+        'ja-JP': { languageCode: 'ja-JP', name: 'ja-JP-Wavenet-B', ssmlGender: 'FEMALE' },
+        'en-US': { languageCode: 'en-US', name: 'en-US-Wavenet-F', ssmlGender: 'FEMALE' },
+        'zh-CN': { languageCode: 'cmn-CN', name: 'cmn-CN-Wavenet-A', ssmlGender: 'FEMALE' },
+    };
+
     function playTTS() {
         stopTTSComplete();
-        playBrowser();
+        playGoogleTTS();
     }
 
-    // ── 브라우저 TTS ────────────────────────────────────
-    function playBrowser() {
+    // ── Google Cloud TTS ─────────────────────────────────
+    async function playGoogleTTS() {
         const fullText = document.getElementById('scriptPreview').innerText;
-        speechParts = [];
+        speechParts = buildSpeechParts(fullText);
+        if (speechParts.length === 0) return;
 
+        document.getElementById('pauseBtn').innerText = '⏳ 음성 생성 중...';
+        document.getElementById('pauseBtn').disabled = true;
+
+        // 모든 파트 병렬로 Google TTS 호출
+        try {
+            const results = await Promise.all(speechParts.map(item => fetchGoogleAudio(item)));
+            speechParts.forEach((item, i) => { item.audioUrl = results[i]; });
+        } catch(e) {
+            alert('Google TTS 오류: ' + e.message + '\n브라우저 TTS로 대체합니다.');
+            document.getElementById('pauseBtn').disabled = false;
+            resetPauseButton();
+            playBrowserFallback();
+            return;
+        }
+
+        document.getElementById('pauseBtn').disabled = false;
+        resetPauseButton();
+        currentSentenceIndex = 0;
+        isPaused = false;
+        playGoogleQueue();
+    }
+
+    async function fetchGoogleAudio(item) {
+        const voice = GOOGLE_VOICES[item.lang] || GOOGLE_VOICES['ko-KR'];
+        const rate = item.lang === 'ja-JP' ? parseFloat(document.getElementById('rateJA').value) :
+                     item.lang === 'ko-KR' ? parseFloat(document.getElementById('rateKO').value) :
+                                             parseFloat(document.getElementById('rateEN').value);
+        const pitch = item.lang === 'ja-JP' ? parseFloat(document.getElementById('pitchJA').value) :
+                      item.lang === 'ko-KR' ? parseFloat(document.getElementById('pitchKO').value) :
+                                              parseFloat(document.getElementById('pitchEN').value);
+
+        const resp = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_TTS_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                input: { text: item.text },
+                voice: voice,
+                audioConfig: {
+                    audioEncoding: 'MP3',
+                    speakingRate: rate,
+                    pitch: (pitch - 1.0) * 20  // Google pitch는 -20~20 범위
+                }
+            })
+        });
+        if (!resp.ok) {
+            const err = await resp.json();
+            throw new Error(err.error?.message || resp.statusText);
+        }
+        const data = await resp.json();
+        const binary = atob(data.audioContent);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const blob = new Blob([bytes], { type: 'audio/mp3' });
+        return URL.createObjectURL(blob);
+    }
+
+    function playGoogleQueue() {
+        if (isPaused || currentSentenceIndex >= speechParts.length) {
+            if (currentSentenceIndex >= speechParts.length) resetPauseButton();
+            return;
+        }
+        const item = speechParts[currentSentenceIndex];
+        const audio = new Audio(item.audioUrl);
+        window._currentAudio = audio;
+        audio.onended = function() {
+            currentSentenceIndex++;
+            setTimeout(playGoogleQueue, item.pauseAfter);
+        };
+        audio.onerror = function() {
+            currentSentenceIndex++;
+            playGoogleQueue();
+        };
+        audio.play();
+    }
+
+    // ── 공통 문장 분리 ────────────────────────────────────
+    function buildSpeechParts(fullText) {
+        const parts = [];
         fullText.split('\n').forEach(line => {
             if (!line.trim()) return;
-
             const isJaLine = /[ぁ-んァ-ン]/.test(line);
-
             if (isJaLine) {
-                // 일본어: 。！？ 로 분리
-                const parts = line.split(/([。！？])/);
+                const segs = line.split(/([。！？])/);
                 let accum = "";
-                parts.forEach(part => {
-                    if (!part) return;
-                    if (/^[。！？]$/.test(part)) {
-                        if (accum.trim().length > 0) {
-                            speechParts.push({ text: accum.trim() + part, lang: 'ja-JP', pauseAfter: 900 });
-                            accum = "";
-                        }
-                    } else {
-                        accum += part;
-                    }
+                segs.forEach(p => {
+                    if (!p) return;
+                    if (/^[。！？]$/.test(p)) {
+                        if (accum.trim().length > 0) { parts.push({ text: accum.trim() + p, lang: 'ja-JP', pauseAfter: 900 }); accum = ""; }
+                    } else accum += p;
                 });
-                if (accum.trim().length > 0)
-                    speechParts.push({ text: accum.trim(), lang: 'ja-JP', pauseAfter: 1200 });
+                if (accum.trim().length > 0) parts.push({ text: accum.trim(), lang: 'ja-JP', pauseAfter: 1200 });
             } else {
-                // 한국어/영어: . ! ? 및 쉼표로도 분리 → 짧게 끊어 지직거림 감소
-                const parts = line.split(/([.!?,，])/);
+                const segs = line.split(/([.!?,，])/);
                 let accum = "";
-                parts.forEach(part => {
-                    if (!part) return;
-                    if (/^[.!?,，]$/.test(part)) {
+                segs.forEach(p => {
+                    if (!p) return;
+                    if (/^[.!?,，]$/.test(p)) {
                         if (accum.trim().length > 1) {
-                            const text = accum.trim() + (part === ',' || part === '，' ? '' : part);
-                            const pause = (part === ',' || part === '，') ? 350 : 800;
-                            speechParts.push({ text, lang: detectLanguageAuto(text), pauseAfter: pause });
+                            const text = accum.trim() + (p === ',' || p === '，' ? '' : p);
+                            parts.push({ text, lang: detectLanguageAuto(text), pauseAfter: p === ',' || p === '，' ? 350 : 800 });
                             accum = "";
                         }
-                    } else {
-                        accum += part;
-                    }
+                    } else accum += p;
                 });
-                if (accum.trim().length > 1)
-                    speechParts.push({ text: accum.trim(), lang: detectLanguageAuto(accum), pauseAfter: 1200 });
+                if (accum.trim().length > 1) parts.push({ text: accum.trim(), lang: detectLanguageAuto(accum), pauseAfter: 1200 });
             }
         });
+        return parts;
+    }
 
+    // ── 브라우저 TTS (fallback) ───────────────────────────
+    function playBrowserFallback() {
+        const fullText = document.getElementById('scriptPreview').innerText;
+        speechParts = buildSpeechParts(fullText);
         if (speechParts.length === 0) return;
         currentSentenceIndex = 0;
         isPaused = false;
-
-        // Chrome 모바일 TTS 버그 방지: 15초마다 resume() 호출
         if (window._ttsKeepAlive) clearInterval(window._ttsKeepAlive);
         window._ttsKeepAlive = setInterval(() => {
             if (window.speechSynthesis.paused) window.speechSynthesis.resume();
         }, 10000);
-
         executeQueue();
     }
 
     function executeQueue() {
         if (isPaused) return;
         if (currentSentenceIndex >= speechParts.length) { resetPauseButton(); return; }
-
         const item = speechParts[currentSentenceIndex];
         window.speechSynthesis.cancel();
-
         const utterance = new SpeechSynthesisUtterance(item.text);
         utterance.lang = item.lang;
-
-        // 언어별 슬라이더 값 적용
-        if (item.lang === 'ja-JP') {
-            utterance.rate  = parseFloat(document.getElementById('rateJA').value);
-            utterance.pitch = parseFloat(document.getElementById('pitchJA').value);
-        } else if (item.lang === 'ko-KR') {
-            utterance.rate  = parseFloat(document.getElementById('rateKO').value);
-            utterance.pitch = parseFloat(document.getElementById('pitchKO').value);
-        } else {
-            utterance.rate  = parseFloat(document.getElementById('rateEN').value);
-            utterance.pitch = parseFloat(document.getElementById('pitchEN').value);
-        }
-
-        // 사용자 선택 성우 매칭
+        if (item.lang === 'ja-JP') { utterance.rate = parseFloat(document.getElementById('rateJA').value); utterance.pitch = parseFloat(document.getElementById('pitchJA').value); }
+        else if (item.lang === 'ko-KR') { utterance.rate = parseFloat(document.getElementById('rateKO').value); utterance.pitch = parseFloat(document.getElementById('pitchKO').value); }
+        else { utterance.rate = parseFloat(document.getElementById('rateEN').value); utterance.pitch = parseFloat(document.getElementById('pitchEN').value); }
         const selJA = document.getElementById('voiceSelectJA').value;
         const selKO = document.getElementById('voiceSelectKO').value;
         let targetVoice = null;
-        if (item.lang === 'ko-KR' && selKO)
-            targetVoice = browserVoices.find(v => v.name === selKO);
-        else if (item.lang === 'ja-JP' && selJA)
-            targetVoice = browserVoices.find(v => v.name === selJA);
-        else
-            targetVoice = browserVoices.find(v => v.lang.startsWith(item.lang.split('-')[0]));
+        if (item.lang === 'ko-KR' && selKO) targetVoice = browserVoices.find(v => v.name === selKO);
+        else if (item.lang === 'ja-JP' && selJA) targetVoice = browserVoices.find(v => v.name === selJA);
+        else targetVoice = browserVoices.find(v => v.lang.startsWith(item.lang.split('-')[0]));
         if (targetVoice) utterance.voice = targetVoice;
-
-        utterance.onend = function() {
-            currentSentenceIndex++;
-            if (!isPaused && currentSentenceIndex < speechParts.length)
-                setTimeout(executeQueue, item.pauseAfter);
-            else if (currentSentenceIndex >= speechParts.length)
-                resetPauseButton();
-        };
-        utterance.onerror = function() {
-            if (!isPaused) { currentSentenceIndex++; executeQueue(); }
-        };
+        utterance.onend = function() { currentSentenceIndex++; if (!isPaused && currentSentenceIndex < speechParts.length) setTimeout(executeQueue, item.pauseAfter); else if (currentSentenceIndex >= speechParts.length) resetPauseButton(); };
+        utterance.onerror = function() { if (!isPaused) { currentSentenceIndex++; executeQueue(); } };
         window.speechSynthesis.speak(utterance);
     }
 
@@ -812,18 +865,24 @@
         if (!isPaused) {
             isPaused = true;
             window.speechSynthesis.cancel();
+            if (window._currentAudio) window._currentAudio.pause();
             btn.innerText = "▶️ 방송 재개";
             btn.style.backgroundColor = "#10b981";
         } else {
             isPaused = false;
             btn.innerText = "⏸️ 일시 정지";
             btn.style.backgroundColor = "#f59e0b";
-            executeQueue();
+            if (window._currentAudio && speechParts[currentSentenceIndex]?.audioUrl) {
+                playGoogleQueue();
+            } else {
+                executeQueue();
+            }
         }
     }
 
     function stopTTSComplete() {
         window.speechSynthesis.cancel();
+        if (window._currentAudio) { window._currentAudio.pause(); window._currentAudio = null; }
         if (window._ttsKeepAlive) { clearInterval(window._ttsKeepAlive); window._ttsKeepAlive = null; }
         isPaused = false;
         currentSentenceIndex = 0;
