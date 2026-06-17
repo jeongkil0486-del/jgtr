@@ -322,41 +322,52 @@ function expandFlight(f,lang){
 }
 
 function composeFinalScript(){
-    let t=document.getElementById('templateInput').value;
-    const vars=extractVariables(t);
-    vars.forEach(v=>{
-        const vals=varValues[v.key];
-        const el=document.getElementById('var_'+v.key);
-        const ko=vals?vals.ko:(el?el.value:'___');
-        const en=vals?vals.en:ko;
-        const ja=vals?vals.ja:ko;
-        const zh=vals?vals.zh:ko;
-        const k=escRe(v.key);
-        // [] → 한국어
-        t=t.replace(new RegExp(`\\[${k}\\]`,'g'),ko);
-        // () → 영어
-        t=t.replace(new RegExp(`\\(${k}\\)`,'g'),en);
-        // （） → 일본어
-        t=t.replace(new RegExp(`（${k}）`,'g'),ja);
-        // {} → 중국어
-        t=t.replace(new RegExp(`\\{${k}\\}`,'g'),zh);
+    const vars=extractVariables(document.getElementById('templateInput').value);
+    const origLines=document.getElementById('templateInput').value.split('\n');
 
-        // [편명]만 쓴 경우에도 남아있는 () （） {} 형태 동일 변수명 자동치환
-        // 방송문 내 (편명) 이 남아있으면 en으로, （편명） 이 남으면 ja로
-        // → 이미 위에서 처리됨. 아래는 [] 하나만 써도 전체 단락에 언어별로 치환되도록
-        // 영어 단락의 [변수명] → en 값으로
-        // 일본어 단락의 [변수명] → ja 값으로
-        // 중국어 단락의 [변수명] → zh 값으로
-        // 단락별로 언어 감지해서 치환
-        t = t.split('\n').map(line => {
-            const lang = detectLang(line);
-            if (lang === 'en-US') return line.replace(new RegExp(`\\[${k}\\]`,'g'), en);
-            if (lang === 'ja-JP') return line.replace(new RegExp(`\\[${k}\\]`,'g'), ja);
-            if (lang === 'zh-CN') return line.replace(new RegExp(`\\[${k}\\]`,'g'), zh);
-            return line;
-        }).join('\n');
+    const resultLines=origLines.map(origLine=>{
+        let line=origLine;
+        // 언어는 원본 줄 기준으로 판별 (치환 전)
+        const lang=detectOrigLang(origLine);
+        vars.forEach(v=>{
+            const vals=varValues[v.key];
+            const el=document.getElementById('var_'+v.key);
+            const ko=vals?vals.ko:(el?el.value:'___');
+            const en=vals?vals.en:ko;
+            const ja=vals?vals.ja:ko;
+            const zh=vals?vals.zh:ko;
+            const k=escRe(v.key);
+
+            // [] → 줄 언어에 맞는 값으로
+            let replaceVal=ko;
+            if(lang==='en-US') replaceVal=en;
+            else if(lang==='ja-JP') replaceVal=ja;
+            else if(lang==='zh-CN') replaceVal=zh;
+            line=line.replace(new RegExp(`\\[${k}\\]`,'g'),replaceVal);
+
+            // 명시적 괄호 형태
+            line=line.replace(new RegExp(`\\(${k}\\)`,'g'),en);
+            line=line.replace(new RegExp(`（${k}）`,'g'),ja);
+            line=line.replace(new RegExp(`\\{${k}\\}`,'g'),zh);
+        });
+        return line;
     });
-    document.getElementById('scriptPreview').innerText=t;
+
+    document.getElementById('scriptPreview').innerText=resultLines.join('\n');
+}
+
+// 원본 템플릿 줄의 언어 판별 — [변수명] 플레이스홀더 무시하고 주변 텍스트로 판별
+function detectOrigLang(line){
+    // 플레이스홀더 제거 후 판별
+    const stripped=line.replace(/\[[^\]]+\]/g,'').replace(/\([^)]+\)/g,'').replace(/（[^）]+）/g,'').replace(/\{[^}]+\}/g,'');
+    if(/[가-힣]/.test(stripped)) return 'ko-KR';
+    if(/[ぁ-んァ-ン一-龯]/.test(stripped)) return 'ja-JP';
+    if(/[A-Za-z]{3,}/.test(stripped)) return 'en-US';
+    // 플레이스홀더만 있는 줄은 원본 전체로 재판별
+    if(/[가-힣]/.test(line)) return 'ko-KR';
+    if(/[ぁ-んァ-ン一-龯]/.test(line)) return 'ja-JP';
+    if(/[A-Za-z]/.test(line)) return 'en-US';
+    return 'ko-KR';
 }
 
 function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
