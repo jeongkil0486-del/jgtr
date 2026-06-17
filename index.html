@@ -2,471 +2,677 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔥 정길이 인생역전 가즈아</title>
-    <!-- 트레이딩뷰 라이브러리 -->
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>t'way AI 안내 방송 시스템 (성우 커스텀)</title>
     <style>
-        :root {
-            --bg-color: #0b0f19;
-            --card-bg: #151d30;
-            --text-main: #f1f5f9;
-            --text-sub: #94a3b8;
-            --blue: #0ea5e9;
-            --green: #10b981;
-            --red: #f43f5e;
-            --purple: #a855f7;
-            --orange: #f59e0b;
-            --border: #1e293b;
-        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8fafc;
             margin: 0;
-            padding: 16px;
+            padding: 12px;
+            color: #1e293b;
         }
-        h2 { text-align: center; color: #fff; margin-bottom: 5px; font-size: 22px; letter-spacing: -1px; }
-        .subtitle { text-align: center; color: var(--text-sub); font-size: 12px; margin-bottom: 15px; }
+        .container {
+            background-color: white;
+            padding: 20px 15px;
+            border-radius: 16px;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+        h2 {
+            color: #d62527; 
+            text-align: center;
+            margin: 5px 0 20px 0;
+            font-size: 22px;
+            font-weight: 800;
+            border-bottom: 3px solid #d62527;
+            padding-bottom: 12px;
+        }
+        .section {
+            background: #f1f5f9;
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            color: #334155;
+            font-size: 14px;
+        }
+        .flex-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        select, textarea, input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            -webkit-appearance: none;
+        }
+        textarea {
+            resize: vertical;
+            font-family: inherit;
+            background-color: #e2e8f0; 
+            line-height: 1.6;
+            font-size: 13px;
+        }
+        #dynamic-inputs-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .dynamic-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+        }
+        .dynamic-group label {
+            font-size: 13px;
+            color: #1e293b;
+            margin-bottom: 0;
+            width: 85px;
+            flex-shrink: 0;
+        }
+        .preview-box {
+            background-color: #fff5f5;
+            border-left: 4px solid #d62527;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 6px;
+            min-height: 50px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #1e293b;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+        .btn-flex {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        button {
+            padding: 10px 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-primary { background-color: #3b82f6; color: white; flex: 1; }
+        .btn-success { background-color: #10b981; color: white; flex: 1; }
+        .btn-lock { background-color: #64748b; color: white; }
+        .btn-edit { background-color: #475569; color: white; padding: 10px; font-size: 12px; white-space: nowrap; }
+        .btn-del { background-color: #ef4444; color: white; padding: 10px; font-size: 12px; white-space: nowrap; }
         
-        .noti-btn {
-            background: linear-gradient(135deg, #f43f5e, #a855f7);
-            color: white; border: none; padding: 12px; border-radius: 8px;
-            width: 100%; font-weight: bold; font-size: 14px; cursor: pointer;
-            margin-bottom: 20px; box-shadow: 0 4px 10px rgba(244,63,94,0.3);
+        .audio-controls {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
         }
-
-        .section-title { font-size: 15px; font-weight: bold; margin: 20px 0 10px 0; color: #e2e8f0; border-left: 4px solid var(--purple); padding-left: 8px; }
-        .sc-scalping { border-left-color: var(--orange) !important; color: #fcd34d !important; }
-
-        .card {
-            background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 12px;
-            border: 1px solid var(--border); transition: all 0.5s ease;
-        }
+        .btn-play { background-color: #d62527; color: white; font-size: 16px; padding: 14px; }
+        .btn-pause { background-color: #f59e0b; color: white; font-size: 16px; padding: 14px; }
         
-        .glow-scalping-card {
-            border: 1px solid var(--orange) !important;
-            animation: scalpingGlow 1.2s infinite alternate;
-            background: linear-gradient(180deg, #151d30 0%, #241a08 100%);
+        button:active { opacity: 0.8; }
+        .management-block {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 8px;
         }
-        @keyframes scalpingGlow {
-            0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.3); }
-            100% { box-shadow: 0 0 18px rgba(245, 158, 11, 0.8); }
-        }
-
-        .glow-buy-card {
-            border: 1px solid var(--blue) !important;
-            animation: neonGlow 1.2s infinite alternate;
-            background: linear-gradient(180deg, #151d30 0%, #0c2340 100%);
-        }
-        @keyframes neonGlow {
-            0% { box-shadow: 0 0 5px rgba(14, 165, 233, 0.4); }
-            100% { box-shadow: 0 0 20px rgba(14, 165, 233, 0.9); }
-        }
-        
-        .form-group { margin-bottom: 10px; }
-        label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
-        select, input {
-            width: 100%; padding: 10px; background-color: #0b0f19;
-            border: 1px solid var(--border); border-radius: 6px; color: #fff;
-            font-size: 15px; box-sizing: border-box;
-        }
-        .main-btn {
-            width: 100%; padding: 12px; background: linear-gradient(135deg, var(--blue), var(--purple));
-            color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer;
-        }
-
-        .flex { display: flex; justify-content: space-between; align-items: center; }
-        .coin-title { font-size: 17px; font-weight: bold; margin: 0; cursor: pointer; color: var(--blue); text-decoration: underline; }
-        
-        .badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; color: #fff; }
-        .bg-buy { background-color: var(--blue); }
-        .bg-sell { background-color: var(--green); }
-        .bg-stop { background-color: var(--red); }
-        .bg-hold { background-color: #475569; }
-        .bg-orange { background-color: var(--orange); }
-
-        .price-info { font-size: 14px; margin: 6px 0; color: #f8fafc; }
-        
-        .analysis-box { background: rgba(11, 15, 25, 0.4); padding: 10px; border-radius: 6px; font-size: 12px; margin-top: 8px; color: #cbd5e1; line-height: 1.5; }
-        .trend-box { background: rgba(168, 85, 247, 0.05); border-left: 3px solid var(--purple); margin-top: 6px; padding: 8px 10px; font-size: 12px; color: #ddd; }
-        
-        .target-price-box { margin-top: 8px; padding: 8px 10px; border-radius: 6px; font-size: 13px; font-weight: bold; }
-        .target-buy { background: rgba(14, 165, 233, 0.15); border: 1px dashed var(--blue); color: #38bdf8; }
-        .target-sell-zone { background: rgba(16, 185, 129, 0.1); border: 1px dashed var(--green); color: #34d399; }
-        
-        .bonus-profit-box {
-            background: rgba(168, 85, 247, 0.15); border: 1px solid var(--purple); color: #d8b4fe;
-            padding: 8px 10px; border-radius: 6px; margin-top: 8px; font-size: 12px; font-weight: bold;
-        }
-
-        .chart-container { display: none; margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #334155; height: 300px; }
-        .delete-btn { background: #1e293b; color: var(--red); border: 1px solid #334155; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; float: right; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-    <h2>🔥 정길이 인생역전 가즈아</h2>
-    <div class="subtitle">글로벌 테크니컬 금융 지표 100중 분산 교차 연산 작동 모드</div>
+<div class="container">
+    <h2>✈️ t'way AI 안내 방송</h2>
+    
+    <!-- 1. 방송 선택 -->
+    <div class="section">
+        <label>1. 방송 선택</label>
+        <div class="flex-group">
+            <select id="status" onchange="loadTemplate()" style="flex: 1.5;"></select>
+            <select id="language" onchange="loadTemplate()" style="flex: 1.2;"></select>
+        </div>
 
-    <button class="noti-btn" onclick="enableNotifications()">🔔 클릭하여 스마트폰 진동 및 알림창 활성화하기</button>
-
-    <!-- 자산 입력 -->
-    <div class="section-title">➕ 내 자산 평단가 입력</div>
-    <div class="card">
-        <div style="display: flex; gap: 10px;">
-            <div class="form-group" style="flex: 1.2;">
-                <label>내 보유 종목 선택</label>
-                <select id="coinSelect">
-                    <option value="">데이터 로딩 중...</option>
-                </select>
+        <!-- 관리 마스터 패널 -->
+        <div id="master-management-panel" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1;">
+            <div class="management-block">
+                <label style="font-size: 12px; color: #d62527;">🛠️ 왼쪽 방송 항목 관리</label>
+                <div class="flex-group" style="margin-bottom: 6px;">
+                    <input type="text" id="newStatusInput" placeholder="새 항목 이름 추가">
+                    <button class="btn-success" style="font-size:12px; padding:10px;" onclick="addStatusItem()">➕ 추가</button>
+                </div>
+                <div class="flex-group">
+                    <input type="text" id="renameStatusInput" placeholder="선택 항목 이름 수정">
+                    <button class="btn-edit" onclick="renameStatusItem()">✏️ 수정</button>
+                    <button class="btn-del" onclick="deleteStatusItem()">❌ 삭제</button>
+                </div>
             </div>
-            <div class="form-group" style="flex: 1;">
-                <label>매수 평단가 (원)</label>
-                <input type="number" id="myBuyPrice" placeholder="예: 500">
+
+            <div class="management-block" style="margin-top: 10px;">
+                <label style="font-size: 12px; color: #3b82f6;">🛠️ 오른쪽 언어 항목 관리</label>
+                <div class="flex-group" style="margin-bottom: 6px;">
+                    <input type="text" id="newLangInput" placeholder="새 언어 이름 추가">
+                    <button class="btn-success" style="font-size:12px; padding:10px;" onclick="addLangItem()">➕ 추가</button>
+                </div>
+                <div class="flex-group">
+                    <input type="text" id="renameLangInput" placeholder="선택 언어 이름 수정">
+                    <button class="btn-edit" onclick="renameLangItem()">✏️ 수정</button>
+                    <button class="btn-del" onclick="deleteLangItem()">❌ 삭제</button>
+                </div>
             </div>
         </div>
-        <button class="main-btn" onclick="addAsset()">내 자산 감시 등록</button>
     </div>
 
-    <!-- 1층 거주구역: 내 자산 실시간 감시 (최상단 고정) -->
-    <div class="section-title">🚨 내 포트폴리오 매도 가격 추적 (-3% / +5%)</div>
-    <div id="myPortfolioAnalysis"></div>
-
-    <!-- 2층 공간: ⚡ 정길이 전용 단타 픽(Pick) 라이브 추천판 -->
-    <div class="section-title sc-scalping">⚡ 실시간 야무진 단타 추천 항목 (방망이 짧게 +5% 킬러)</div>
-    <div id="scalpingAnalysis">
-        <p style="text-align: center; color: var(--text-sub); padding: 15px;">글로벌 펀더멘탈 추세 매트릭스 대조 연산 중...</p>
+    <!-- 🔊 [핵심 패치] 내장 성우를 직접 바꿀 수 있는 오디오 제어 섹션 -->
+    <div class="section">
+        <label>🎙️ 언어별 AI 성우 선택 (마음에 드는 목소리로 직접 변경)</label>
+        <div style="margin-bottom: 8px;">
+            <span style="font-size: 12px; font-weight: bold; color: #555;">🇯🇵 일본어 성우 목록:</span>
+            <select id="voiceSelectJA" onchange="saveSelectedVoices()"></select>
+        </div>
+        <div>
+            <span style="font-size: 12px; font-weight: bold; color: #555;">🇰🇷 한국어 성우 목록:</span>
+            <select id="voiceSelectKO" onchange="saveSelectedVoices()"></select>
+        </div>
     </div>
 
-    <!-- 3층 공간: 장중 보수적 눌림목 매수 판판 -->
-    <div class="section-title">🔍 고정밀 신호판 (1순위: 저점 진입주 / 2순위: 수급 밀집주)</div>
-    <div id="marketAnalysis">
-        <p style="text-align: center; color: var(--text-sub); padding: 20px;">금융 지표 실시간 교차 검증 중...</p>
+    <!-- 2. 방송문 -->
+    <div class="section">
+        <label id="templateLabel">2. 방송문</label>
+        
+        <div class="flex-group">
+            <input type="password" id="passwordInput" placeholder="비밀번호 입력" style="flex: 1.2;">
+            <button class="btn-primary" onclick="unlockTemplate()">🔓 해제</button>
+            <button class="btn-lock" onclick="lockTemplate()">🔒 잠금</button>
+        </div>
+
+        <textarea id="templateInput" rows="12" readonly disabled oninput="renderDynamicInputs()"></textarea>
+        
+        <div class="btn-flex" id="save-control-group" style="display: none;">
+            <button class="btn-success" onclick="saveTemplate()">💾 현재 조합에 저장</button>
+            <button class="btn-lock" onclick="resetDefaultTemplate()">🔄 초기화</button>
+        </div>
     </div>
 
-    <script>
-        let currentTargetCoins = []; 
-        let myAssets = JSON.parse(localStorage.getItem('deepCryptoAssets')) || [];
-        let lastNotifiedStates = {};
+    <!-- 3. 공란 입력 -->
+    <div class="section" id="dynamic-section" style="display:none;">
+        <label>3. 공란 입력</label>
+        <div id="dynamic-inputs-container"></div>
+    </div>
 
-        // [수정 포인트] 버셀(Vercel)의 강력한 보안인증을 통과하기 위해 업비트 공식 API 엔드포인트를 https 명시 주소로 전면 전환
-        const UPBIT_API_URL = "https://api.upbit.com/v1";
+    <!-- 최종 방송문 미리보기 -->
+    <label>📢 최종 완성 방송문 미리보기</label>
+    <div class="preview-box" id="scriptPreview"></div>
 
-        function enableNotifications() {
-            if (!("Notification" in window)) { alert("이 브라우저는 알림을 지원하지 않습니다."); return; }
-            Notification.requestPermission().then(permission => {
-                if (permission === "granted") {
-                    alert("🔔 알림과 진동 기능이 활성화되었습니다!");
-                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    <!-- 4. 오디오 컨트롤 -->
+    <div class="audio-controls">
+        <button class="btn-play" onclick="playTTS()">🔊 방송 시작</button>
+        <button class="btn-pause" id="pauseBtn" onclick="togglePause()">⏸️ 일시 정지</button>
+    </div>
+</div>
+
+<script>
+    const ADMIN_PASSWORD = "0501";
+    let isPaused = false;
+    let currentSentenceIndex = 0;
+    let speechParts = [];
+    let browserVoices = [];
+
+    const initialStatusList = [
+        { id: "status_1", name: "우선탑승 (Pre-boarding)" },
+        { id: "status_2", name: "탑승중 (Boarding)" },
+        { id: "status_3", name: "탑승마감 (Final Call)" }
+    ];
+
+    const initialLangList = [
+        { id: "lang_1", name: "종합 방송" },
+        { id: "lang_2", name: "한국어 전용" },
+        { id: "lang_3", name: "영어 전용" }
+    ];
+
+    const defaultTemplates = {
+        "status_1_lang_1": `더 멋진 변화의 시작, 티웨이항공에서 안내 말씀드리겠습니다. 잠시 후 티웨이항공 [편명] 편 [목적지]행 항공기의 탑승이 시작될 예정입니다. 원활하고 신속한 탑승을 위하여 몸이 불편하신 손님 및 유아를 동반하신 손님, 플래티넘 손님께서 먼저 탑승을 준비하여 주시기 바랍니다. 감사합니다.\n\nYour attention please. T’way Air flight (편명) bound for (목적지) is now ready for boarding. For efficient boarding, we will invite passengers who need special assistance, or are traveling with infants, business saver, t’way plus Platinum to board first. Thank you.\n\nT’way 航空よりご案内申し上げます。まもなくT’way 航空（편명）便（목적지）行きのご搭乗を開始させて頂きます。まず始めに、体の具合が悪いお客様およびお子様連れのお客様より機内へのご案内をさせて頂きますので、搭乗券をお持ちになって、搭乗口前にお越しください。`
+    };
+
+    const translationDic = {
+        "오사카": { en: "Osaka", ja: "大阪", zh: "大阪" },
+        "후쿠오카": { en: "Fukuoka", ja: "福岡", zh: "福冈" },
+        "나리타": { en: "Narita", ja: "成田", zh: "成田" },
+        "삿포로": { en: "Sapporo", ja: "札幌", zh: "扎幌" },
+        "나트랑": { en: "Nha Trang", ja: "ニャチャン", zh: "芽庄" },
+        "홍콩": { en: "Hong Kong", ja: "香港", zh: "香港" },
+        "가오슝": { en: "Kaohsiung", ja: "高雄", zh: "高雄" }
+    };
+
+    window.onload = function() {
+        loadVoices();
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = function() {
+                loadVoices();
+                populateVoiceSelectors();
+            };
+        }
+        initSelectBoxes(); 
+        loadTemplate();
+    };
+
+    function loadVoices() {
+        browserVoices = window.speechSynthesis.getVoices();
+        populateVoiceSelectors();
+    }
+
+    // 장치 내 탑재된 일본어/한국어 성우 목록을 드롭다운에 채워넣는 로직
+    function populateVoiceSelectors() {
+        const jaSelect = document.getElementById('voiceSelectJA');
+        const koSelect = document.getElementById('voiceSelectKO');
+        if (!jaSelect || browserVoices.length === 0) return;
+
+        const currentJaSaved = localStorage.getItem('tway_saved_voice_ja');
+        const currentKoSaved = localStorage.getItem('tway_saved_voice_ko');
+
+        jaSelect.innerHTML = "";
+        koSelect.innerHTML = "";
+
+        browserVoices.forEach(voice => {
+            if (voice.lang.startsWith('ja')) {
+                const opt = document.createElement('option');
+                opt.value = voice.name;
+                opt.text = `${voice.name} (${voice.lang})`;
+                if (voice.name === currentJaSaved) opt.selected = true;
+                jaSelect.appendChild(opt);
+            }
+            if (voice.lang.startsWith('ko')) {
+                const opt = document.createElement('option');
+                opt.value = voice.name;
+                opt.text = `${voice.name} (${voice.lang})`;
+                if (voice.name === currentKoSaved) opt.selected = true;
+                koSelect.appendChild(opt);
+            }
+        });
+    }
+
+    function saveSelectedVoices() {
+        localStorage.setItem('tway_saved_voice_ja', document.getElementById('voiceSelectJA').value);
+        localStorage.setItem('tway_saved_voice_ko', document.getElementById('voiceSelectKO').value);
+    }
+
+    function initSelectBoxes() {
+        if (!localStorage.getItem('tw_master_status')) {
+            localStorage.setItem('tw_master_status', JSON.stringify(initialStatusList));
+        }
+        if (!localStorage.getItem('tw_master_lang')) {
+            localStorage.setItem('tw_master_lang', JSON.stringify(initialLangList));
+        }
+        renderSelectOptions();
+    }
+
+    function renderSelectOptions() {
+        const statusSelect = document.getElementById('status');
+        const langSelect = document.getElementById('language');
+        
+        const currentStatusVal = statusSelect.value;
+        const currentLangVal = langSelect.value;
+
+        const statusList = JSON.parse(localStorage.getItem('tw_master_status'));
+        const langList = JSON.parse(localStorage.getItem('tw_master_lang'));
+
+        statusSelect.innerHTML = "";
+        statusList.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.id; opt.text = item.name;
+            statusSelect.appendChild(opt);
+        });
+
+        langSelect.innerHTML = "";
+        langList.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.id; opt.text = item.name;
+            langSelect.appendChild(opt);
+        });
+
+        if (currentStatusVal && statusSelect.querySelector(`option[value="${currentStatusVal}"]`)) {
+            statusSelect.value = currentStatusVal;
+        }
+        if (currentLangVal && langSelect.querySelector(`option[value="${currentLangVal}"]`)) {
+            langSelect.value = currentLangVal;
+        }
+    }
+
+    function addStatusItem() {
+        const name = document.getElementById('newStatusInput').value.trim();
+        if (!name) return alert("이름을 입력하세요.");
+        const list = JSON.parse(localStorage.getItem('tw_master_status'));
+        const newId = "status_" + Date.now();
+        list.push({ id: newId, name: name });
+        localStorage.setItem('tw_master_status', JSON.stringify(list));
+        document.getElementById('newStatusInput').value = "";
+        renderSelectOptions();
+        document.getElementById('status').value = newId;
+        loadTemplate();
+    }
+
+    function renameStatusItem() {
+        const select = document.getElementById('status');
+        const targetId = select.value;
+        const newName = document.getElementById('renameStatusInput').value.trim();
+        if (!newName) return alert("이름을 입력하세요.");
+        const list = JSON.parse(localStorage.getItem('tw_master_status'));
+        const item = list.find(i => i.id === targetId);
+        if (item) item.name = newName;
+        localStorage.setItem('tw_master_status', JSON.stringify(list));
+        renderSelectOptions();
+        loadTemplate();
+    }
+
+    function deleteStatusItem() {
+        const select = document.getElementById('status');
+        const targetId = select.value;
+        const list = JSON.parse(localStorage.getItem('tw_master_status'));
+        if (list.length <= 1) return alert("최소 한 개는 있어야 합니다.");
+        if (!confirm("정말 삭제하시겠습니까?")) return;
+        const newList = list.filter(i => i.id !== targetId);
+        localStorage.setItem('tw_master_status', JSON.stringify(newList));
+        renderSelectOptions();
+        loadTemplate();
+    }
+
+    function addLangItem() {
+        const name = document.getElementById('newLangInput').value.trim();
+        if (!name) return alert("이름을 입력하세요.");
+        const list = JSON.parse(localStorage.getItem('tw_master_lang'));
+        const newId = "lang_" + Date.now();
+        list.push({ id: newId, name: name });
+        localStorage.setItem('tw_master_lang', JSON.stringify(list));
+        document.getElementById('newLangInput').value = "";
+        renderSelectOptions();
+        document.getElementById('language').value = newId;
+        loadTemplate();
+    }
+
+    function renameLangItem() {
+        const select = document.getElementById('language');
+        const targetId = select.value;
+        const newName = document.getElementById('renameLangInput').value.trim();
+        if (!newName) return alert("이름을 입력하세요.");
+        const list = JSON.parse(localStorage.getItem('tw_master_lang'));
+        const item = list.find(i => i.id === targetId);
+        if (item) item.name = newName;
+        localStorage.setItem('tw_master_lang', JSON.stringify(list));
+        renderSelectOptions();
+        loadTemplate();
+    }
+
+    function deleteLangItem() {
+        const select = document.getElementById('language');
+        const targetId = select.value;
+        const list = JSON.parse(localStorage.getItem('tw_master_lang'));
+        if (list.length <= 1) return alert("최소 한 개는 있어야 합니다.");
+        if (!confirm("정말 삭제하시겠습니까?")) return;
+        const newList = list.filter(i => i.id !== targetId);
+        localStorage.setItem('tw_master_lang', JSON.stringify(newList));
+        renderSelectOptions();
+        loadTemplate();
+    }
+
+    function getStorageKey() {
+        return `tway_final_${document.getElementById('status').value}_${document.getElementById('language').value}`;
+    }
+
+    function loadTemplate() {
+        const statusSelect = document.getElementById('status');
+        const langSelect = document.getElementById('language');
+        if(!statusSelect.options.length || !langSelect.options.length) return;
+
+        const currentStatusName = statusSelect.options[statusSelect.selectedIndex].text;
+        const currentLangName = langSelect.options[langSelect.selectedIndex].text;
+        
+        document.getElementById('templateLabel').innerText = `2. 방송문 [ ${currentStatusName} > ${currentLangName} ]`;
+        document.getElementById('renameStatusInput').value = currentStatusName;
+        document.getElementById('renameLangInput').value = currentLangName;
+
+        const key = getStorageKey();
+        const savedData = localStorage.getItem(key);
+        
+        if (savedData) {
+            document.getElementById('templateInput').value = savedData;
+        } else {
+            const combo = `${statusSelect.value}_${langSelect.value}`;
+            document.getElementById('templateInput').value = defaultTemplates[combo] || `더 멋진 변화의 시작, 티웨이항공 안내 방송입니다.\n[편명] 및 [목적지] 내용을 입력하세요.`;
+        }
+        
+        const isUnlocked = !document.getElementById('templateInput').readOnly;
+        document.getElementById('master-management-panel').style.display = isUnlocked ? "block" : "none";
+
+        stopTTSComplete();
+        renderDynamicInputs();
+    }
+
+    function saveTemplate() {
+        localStorage.setItem(getStorageKey(), document.getElementById('templateInput').value);
+        alert(`💾 저장되었습니다.`);
+        lockTemplate();
+    }
+
+    function unlockTemplate() {
+        if(document.getElementById('passwordInput').value === ADMIN_PASSWORD) {
+            const ti = document.getElementById('templateInput');
+            ti.readOnly = false; ti.disabled = false;
+            ti.style.backgroundColor = "#ffffff";
+            document.getElementById('save-control-group').style.display = "flex";
+            document.getElementById('master-management-panel').style.display = "block"; 
+        } else {
+            alert("❌ 비밀번호가 올바르지 않습니다.");
+        }
+    }
+
+    function lockTemplate() {
+        const ti = document.getElementById('templateInput');
+        ti.readOnly = true; ti.disabled = true;
+        ti.style.backgroundColor = "#f1f5f9";
+        document.getElementById('save-control-group').style.display = "none";
+        document.getElementById('master-management-panel').style.display = "none"; 
+        document.getElementById('passwordInput').value = "";
+    }
+
+    function resetDefaultTemplate() {
+        if(confirm("기본 양식으로 복원하시겠습니까?")) {
+            localStorage.removeItem(getStorageKey());
+            loadTemplate();
+        }
+    }
+
+    function renderDynamicInputs() {
+        const container = document.getElementById('dynamic-inputs-container');
+        const oldFlight = document.getElementById('flight_val')?.value || 'TW123';
+        const oldDest = document.getElementById('dest_val')?.value || '오사카';
+
+        container.innerHTML = `
+            <div class="dynamic-group">
+                <label>✈️ 비행 편명</label>
+                <input type="text" id="flight_val" value="${oldFlight}" oninput="composeFinalScript()">
+            </div>
+            <div class="dynamic-group">
+                <label>📍 목적 도시</label>
+                <input type="text" id="dest_val" value="${oldDest}" oninput="composeFinalScript()">
+            </div>
+        `;
+        document.getElementById('dynamic-section').style.display = 'block';
+        composeFinalScript();
+    }
+
+    function composeFinalScript() {
+        let template = document.getElementById('templateInput').value;
+        const flight = document.getElementById('flight_val').value || '___';
+        const destKo = document.getElementById('dest_val').value || '___';
+
+        let destEn = destKo, destJa = destKo, destZh = destKo;
+        if (translationDic[destKo]) {
+            destEn = translationDic[destKo].en;
+            destJa = translationDic[destKo].ja;
+            destZh = translationDic[destKo].zh;
+        }
+
+        template = template.replace(/\[편명\]/g, flight).replace(/\[목적지\]/g, destKo);
+        template = template.replace(/\(편명\)/g, flight).replace(/\(목적지\)/g, destEn);
+        template = template.replace(/（편명）/g, flight).replace(/（목적지）/g, destJa);
+        template = template.replace(/\{편명\}/g, flight).replace(/\{목적지\}/g, destZh);
+
+        document.getElementById('scriptPreview').innerText = template;
+    }
+
+    function playTTS() {
+        stopTTSComplete();
+        const fullText = document.getElementById('scriptPreview').innerText;
+        const lines = fullText.split('\n');
+        speechParts = [];
+
+        lines.forEach(line => {
+            if(!line.trim()) return;
+
+            const sentences = line.split(/([.!?])/);
+            let accum = "";
+
+            sentences.forEach(part => {
+                if(!part) return;
+                if(/^[.!?]$/.test(part)) {
+                    if(accum.trim().length > 1) {
+                        const targetText = accum.trim() + part;
+                        const detectedLang = detectLanguageAuto(targetText);
+                        
+                        speechParts.push({
+                            text: targetText,
+                            lang: detectedLang,
+                            pauseAfter: 800
+                        });
+                        accum = "";
+                    }
+                } else {
+                    accum += part;
                 }
             });
-        }
-
-        function triggerAlert(title, message) {
-            if (navigator.vibrate) navigator.vibrate([400, 200, 400]);
-            if (Notification.permission === "granted") {
-                new Notification(title, { body: message, icon: 'https://cdn-icons-png.flaticon.com/512/2822/2822709.png' });
+            if(accum.trim().length > 1) {
+                const detectedLang = detectLanguageAuto(accum);
+                speechParts.push({ text: accum.trim(), lang: detectedLang, pauseAfter: 1200 });
             }
+        });
+
+        if(speechParts.length === 0) return;
+
+        currentSentenceIndex = 0;
+        isPaused = false;
+        executeQueue();
+    }
+
+    function detectLanguageAuto(text) {
+        if (/[가-힣]/.test(text)) return 'ko-KR'; 
+        if (/[ぁ-んァ-ン]/.test(text)) return 'ja-JP'; 
+        if (/[𠮷𦥯一-龥]/.test(text) && !/[가-힣]/.test(text)) return 'zh-CN'; 
+        if (/[A-Za-z]/.test(text)) return 'en-US'; 
+        return 'ko-KR'; 
+    }
+
+    function executeQueue() {
+        if (isPaused) return;
+        if (currentSentenceIndex >= speechParts.length) {
+            resetPauseButton();
+            return;
         }
 
-        function toggleChart(divId, marketKey) {
-            const container = document.getElementById(divId);
-            const pureSymbol = marketKey.replace('portfolio_', '').replace('scalp_', '').replace('KRW-', '');
-            
-            if (container.style.display === 'block') {
-                container.style.display = 'none';
-                container.innerHTML = '';
-            } else {
-                container.style.display = 'block';
-                new TradingView.widget({
-                    "width": "100%", "height": "100%", 
-                    "symbol": `UPBIT:${pureSymbol}KRW`,
-                    "interval": "D", "timezone": "Asia/Seoul", "theme": "dark", "style": "1", "locale": "ko",
-                    "toolbar_bg": "#151d30", "enable_publishing": false, "hide_side_toolbar": false, "allow_symbol_change": false,
-                    "container_id": divId
-                });
+        const currentItem = speechParts[currentSentenceIndex];
+        window.speechSynthesis.cancel(); 
+
+        const utterance = new SpeechSynthesisUtterance(currentItem.text);
+        utterance.lang = currentItem.lang;
+
+        // 🔴 [사용자 선택 성우 매칭 엔진으로 교체]
+        const selectedJaName = document.getElementById('voiceSelectJA').value;
+        const selectedKoName = document.getElementById('voiceSelectKO').value;
+
+        let targetVoice = null;
+        
+        if (currentItem.lang === 'ko-KR' && selectedKoName) {
+            targetVoice = browserVoices.find(v => v.name === selectedKoName);
+        } else if (currentItem.lang === 'ja-JP' && selectedJaName) {
+            targetVoice = browserVoices.find(v => v.name === selectedJaName);
+        } else {
+            targetVoice = browserVoices.find(v => v.lang.startsWith(currentItem.lang.split('-')[0]));
+        }
+        
+        if (targetVoice) utterance.voice = targetVoice;
+
+        // 호흡 안정선 튜닝
+        utterance.rate = 0.88;  
+        utterance.pitch = 1.00; 
+
+        utterance.onend = function() {
+            currentSentenceIndex++;
+            if (!isPaused && currentSentenceIndex < speechParts.length) {
+                setTimeout(executeQueue, currentItem.pauseAfter);
+            } else if (currentSentenceIndex >= speechParts.length) {
+                resetPauseButton();
             }
-        }
+        };
 
-        function addAsset() {
-            const market = document.getElementById('coinSelect').value;
-            const buyPrice = parseFloat(document.getElementById('myBuyPrice').value);
-            if (!market || isNaN(buyPrice) || buyPrice <= 0) { alert('정확한 종목과 평단가를 입력하세요.'); return; }
-            
-            const idx = myAssets.findIndex(a => a.market === market);
-            if (idx > -1) myAssets[idx].buyPrice = buyPrice;
-            else myAssets.push({ market, buyPrice });
-
-            localStorage.setItem('deepCryptoAssets', JSON.stringify(myAssets));
-            document.getElementById('myBuyPrice').value = '';
-            updatePrices();
-        }
-
-        function deleteAsset(index) {
-            if(confirm('감시를 취소하시겠습니까?')) {
-                myAssets.splice(index, 1);
-                localStorage.setItem('deepCryptoAssets', JSON.stringify(myAssets));
-                updatePrices();
+        utterance.onerror = function() {
+            if (!isPaused) {
+                currentSentenceIndex++;
+                executeQueue();
             }
+        };
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function togglePause() {
+        const btn = document.getElementById('pauseBtn');
+        if (!isPaused) {
+            isPaused = true;
+            window.speechSynthesis.cancel(); 
+            btn.innerText = "▶️ 방송 재개";
+            btn.style.backgroundColor = "#10b981";
+        } else {
+            isPaused = false;
+            btn.innerText = "⏸️ 일시 정지";
+            btn.style.backgroundColor = "#f59e0b";
+            executeQueue(); 
         }
+    }
 
-        async function fetchTopVolumeCoins() {
-            try {
-                // 버셀 https 환경 맞춤형 다이렉트 호출 시큐어 튜닝
-                const marketRes = await fetch(`${UPBIT_API_URL}/market/all`);
-                const allMarkets = await marketRes.json();
-                const krwMarkets = allMarkets.filter(m => m.market.startsWith("KRW-")).map(m => m.market);
+    function stopTTSComplete() {
+        window.speechSynthesis.cancel();
+        isPaused = false;
+        currentSentenceIndex = 0;
+        resetPauseButton();
+    }
 
-                const tickerRes = await fetch(`${UPBIT_API_URL}/ticker?markets=${krwMarkets.join(',')}`);
-                const allTickers = await tickerRes.json();
+    function resetPauseButton() {
+        isPaused = false;
+        const btn = document.getElementById('pauseBtn');
+        btn.innerText = "⏸️ 일시 정지";
+        btn.style.backgroundColor = "#f59e0b";
+    }
+</script>
 
-                allTickers.sort((a, b) => b.acc_trade_price_24h - a.acc_trade_price_24h);
-                const topAltTickers = allTickers.filter(t => t.market !== 'KRW-BTC').slice(0, 7);
-                
-                currentTargetCoins = ['KRW-BTC', ...topAltTickers.map(t => t.market)];
-
-                const selectEl = document.getElementById('coinSelect');
-                selectEl.innerHTML = '';
-                currentTargetCoins.forEach(m => {
-                    const s = m.replace('KRW-', '');
-                    selectEl.innerHTML += `<option value="${m}">${s}</option>`;
-                });
-
-            } catch (e) {
-                console.error("실시간 마켓 스캔 오류", e);
-            }
-        }
-
-        async function updatePrices() {
-            try {
-                if (currentTargetCoins.length === 0) {
-                    await fetchTopVolumeCoins();
-                }
-
-                const myAssetMarkets = myAssets.map(a => a.market);
-                const combinedCoins = [...new Set([...currentTargetCoins, ...myAssetMarkets])];
-
-                // http 노이즈를 완전 차단한 안전한 https 패치 교차 병렬 통신
-                const tickerPromise = fetch(`${UPBIT_API_URL}/ticker?markets=${combinedCoins.join(',')}`).then(r => r.json());
-                const orderbookPromise = fetch(`${UPBIT_API_URL}/orderbook?markets=${combinedCoins.join(',')}`).then(r => r.json());
-                
-                const [tickers, orderbooks] = await Promise.all([tickerPromise, orderbookPromise]);
-
-                tickers.forEach(t => {
-                    const ob = orderbooks.find(o => o.market === t.market);
-                    let orderbookRatio = 0.5;
-                    if(ob) {
-                        const totalBidSize = ob.total_bid_size || 1;
-                        const totalAskSize = ob.total_ask_size || 1;
-                        orderbookRatio = totalBidSize / (totalBidSize + totalAskSize);
-                    }
-
-                    const highToLowChg = ((t.trade_price - t.high_price) / t.high_price);
-                    
-                    t.scalpScore = (t.signed_change_rate * 5000) + (t.acc_trade_price_24h / 40000000) + (orderbookRatio * 1500);
-
-                    if (t.signed_change_rate <= -0.045 && highToLowChg <= -0.07 && orderbookRatio > 0.4) {
-                        t.sortScore = 10000 + Math.abs(highToLowChg) * 100 + (orderbookRatio * 10);
-                    } else if (t.signed_change_rate > 0.015 && t.signed_change_rate < 0.08 && t.acc_trade_price_24h > 150000000000) {
-                        t.sortScore = 5000 + t.signed_change_rate * 10; 
-                    } else if (t.signed_change_rate >= 0.08) {
-                        t.sortScore = -10000;
-                    } else {
-                        t.sortScore = t.signed_change_rate; 
-                    }
-                });
-
-                // 2층 단타 패널 렌더링
-                const scalpTickers = [...tickers]
-                    .filter(t => t.market !== 'KRW-BTC' && t.signed_change_rate > 0.01 && t.signed_change_rate < 0.08)
-                    .sort((a, b) => b.scalpScore - a.scalpScore)
-                    .slice(0, 3);
-
-                const scalpContainer = document.getElementById('scalpingAnalysis');
-                scalpContainer.innerHTML = '';
-
-                if (scalpTickers.length === 0) {
-                    scalpContainer.innerHTML = `<p style="text-align: center; color: var(--text-sub); padding: 15px;">현재 지표 스캔 결과 리스크 범위 안쪽의 안전한 단타 진입 대상이 존재하지 않습니다. 대기하세요.</p>`;
-                }
-
-                scalpTickers.forEach(ticker => {
-                    const m = ticker.market;
-                    const s = m.replace('KRW-', '');
-                    const curPrice = ticker.trade_price;
-                    const chgRate = (ticker.signed_change_rate * 100).toFixed(2);
-                    const scalpTargetBuy = curPrice * 0.985;
-
-                    scalpContainer.innerHTML += `
-                        <div class="card glow-scalping-card">
-                            <div class="flex">
-                                <p class="coin-title" onclick="toggleChart('chart_scalp_${m}', '${m}')" style="color:var(--orange);">${s} [단타 돌파 타겟] ⚡</p>
-                                <span class="badge bg-orange">실시간 모멘텀 밀집</span>
-                            </div>
-                            <div class="price-info">현재 가격: <b>${curPrice.toLocaleString()} 원</b> (<span style="color:var(--red); font-weight:bold;">+${chgRate}%</span>)</div>
-                            <div class="chart-container" id="chart_scalp_${m}"></div>
-                            <div class="target-price-box" style="background:rgba(245,158,11,0.15); border:1px dashed var(--orange); color:#fcd34d;">
-                                🎯 정밀 단타 진입선: <span>${Math.floor(scalpTargetBuy).toLocaleString()} 원 이하</span>
-                            </div>
-                            <div class="analysis-box">⏳ <b>24H 거래대금:</b> ${(ticker.acc_trade_price_24h / 100000000).toFixed(0)}억 원<br>📢 <b>단타 전술 가이드:</b> 100중 교차 기술 검증 상 단기 수급 거래세가 가장 높은 최적의 활어 상태입니다. 지정된 안전 대기선 터치 시 분할 집행 후 **깔끔하게 +5% 청산**을 권장합니다.</div>
-                        </div>
-                    `;
-                });
-
-
-                // 1층 포트폴리오 렌더링
-                const portfolioContainer = document.getElementById('myPortfolioAnalysis');
-                portfolioContainer.innerHTML = '';
-
-                if(myAssets.length === 0) {
-                    portfolioContainer.innerHTML = `<p style="text-align:center; color:var(--text-sub); font-size:13px; padding:10px;">평단가를 입력하시면 시스템이 24시간 역산 감시를 가동합니다.</p>`;
-                }
-
-                myAssets.forEach((asset, index) => {
-                    const live = tickers.find(t => t.market === asset.market);
-                    if (!live) return;
-
-                    const coinName = asset.market.replace('KRW-', '');
-                    const curPrice = live.trade_price;
-                    const profitRate = ((curPrice - asset.buyPrice) / asset.buyPrice) * 100;
-
-                    const targetTakeProfit = asset.buyPrice * 1.05;
-                    const targetStopLoss = asset.buyPrice * 0.97;
-
-                    let bonusSignalHtml = "";
-                    let isSuperPumped = live.acc_trade_price_24h > 350000000000 && live.signed_change_rate > 0.03;
-                    
-                    if (isSuperPumped) {
-                        const bonusRate = 12 + Math.min(6, (live.acc_trade_price_24h / 200000000000));
-                        const targetBonusPrice = asset.buyPrice * (1 + (bonusRate / 100));
-                        
-                        bonusSignalHtml = `
-                            <div class="bonus-profit-box">
-                                🔥 [세력 수급 포착! 5%는 아쉽습니다]<br>
-                                현재 대규모 거래대금 폭발 중으로 상방 유동성이 매우 강합니다.<br>
-                                🎯 보너스 목표 수익률: <span style="color:#f43f5e; font-size:14px;">+${bonusRate.toFixed(1)}%</span> 도달 가능<br>
-                                💰 분할 매도 권장 가격: <span style="color:var(--green); font-size:14px;">${Math.floor(targetBonusPrice).toLocaleString()} 원</span>까지 스톱로스를 올리고 버텨보세요!
-                            </div>
-                        `;
-                    }
-
-                    let tSignal = "감시 중 (홀딩)"; let tBadge = "bg-hold"; let tDesc = "목표 타겟 범위 안쪽입니다. 가격 도달을 트래킹합니다.";
-
-                    if (profitRate >= 5.0) {
-                        tSignal = "🚨 즉시 매도 (익절!)"; tBadge = "bg-sell";
-                        tDesc = `인생역전 익절 타겟팅에 성공했습니다! 전량 즉시 던지세요!`;
-                        if (isSuperPumped) {
-                            tSignal = "🚀 수급 강세 (분할 매도)";
-                            tDesc = `기본 5% 돌파 완료! 거래량이 엄청나니 절반만 수익 실현하고, 나머지는 아래 보너스 가격대까지 욕심내볼 만합니다!`;
-                        }
-                        if (lastNotifiedStates[asset.market + '_TP'] !== 'FIRED') {
-                            triggerAlert(`🎉 [익절 타겟 달성] ${coinName} 매도!!`, isSuperPumped ? `거래량이 빵빵합니다! 분할 매도로 수익을 극대화하세요!` : `평단가 대비 목표치 +5% 도달! 기계적으로 수익 확정하세요.`);
-                            lastNotifiedStates[asset.market + '_TP'] = 'FIRED';
-                        }
-                    } else if (profitRate <= -3.0) {
-                        tSignal = "❌ 즉시 탈출 (손절!)"; tBadge = "bg-stop";
-                        tDesc = `최대 마지노선이 깨졌습니다. 원금 보호를 위해 탈출 지시합니다.`;
-                        if (lastNotifiedStates[asset.market + '_SL'] !== 'FIRED') {
-                            triggerAlert(`❌ [손절 타겟 터치] ${coinName} 즉시 탈출!`, `리스크 제어벽 -3% 붕괴! 추가 폭락 방지를 위해 지금 시장가 매도하세요.`);
-                            lastNotifiedStates[asset.market + '_SL'] = 'FIRED';
-                        }
-                    } else {
-                        lastNotifiedStates[asset.market + '_TP'] = 'READY'; lastNotifiedStates[asset.market + '_SL'] = 'READY';
-                    }
-
-                    portfolioContainer.innerHTML += `
-                        <div class="card" style="border-left: 5px solid ${profitRate >= 5 ? 'var(--green)' : profitRate <= -3 ? 'var(--red)' : 'var(--blue)'}">
-                            <div class="flex">
-                                <p class="coin-title" onclick="toggleChart('chart_p_${index}', '${asset.market}')">${coinName} (내 평단) 🔍</p>
-                                <span class="badge ${tBadge}">${tSignal}</span>
-                            </div>
-                            <div style="font-size:13px; margin: 4px 0;">내 평단가: <b>${asset.buyPrice.toLocaleString()} 원</b> | 현재가: ${curPrice.toLocaleString()} 원</div>
-                            <div style="font-weight:bold; font-size:14px; color:${profitRate >= 0 ? 'var(--red)' : 'var(--blue)'}">현재 수익률: ${profitRate.toFixed(2)}%</div>
-                            
-                            <div class="target-price-box target-sell-zone">
-                                📈 기본 익절 가격 (+5%): <span style="color:var(--green);">${Math.floor(targetTakeProfit).toLocaleString()} 원</span><br>
-                                📉 손절 탈출 가격 (-3%): <span style="color:var(--red);">${Math.floor(targetStopLoss).toLocaleString()} 원</span>
-                            </div>
-
-                            ${bonusSignalHtml}
-
-                            <div class="chart-container" id="chart_p_${index}"></div>
-                            <div class="analysis-box">📢 <b>지시사항:</b> ${tDesc}</div>
-                            <button class="delete-btn" onclick="deleteAsset(${index})">감시 해제</button>
-                            <div style="clear:both;"></div>
-                        </div>
-                    `;
-                });
-
-                // 3층 일반 신호판 렌더링
-                tickers.sort((a, b) => b.sortScore - a.sortScore);
-                const marketContainer = document.getElementById('marketAnalysis');
-                marketContainer.innerHTML = '';
-
-                tickers.forEach(ticker => {
-                    if (!currentTargetCoins.includes(ticker.market)) return;
-
-                    const m = ticker.market;
-                    const s = m.replace('KRW-', '');
-                    const curPrice = ticker.trade_price;
-                    const chgRate = (ticker.signed_change_rate * 100).toFixed(2);
-                    const isUp = ticker.signed_change_rate >= 0;
-
-                    const highToLowPercent = (((ticker.trade_price - ticker.high_price) / ticker.high_price) * 100).toFixed(1);
-                    const calculatedTargetBuy = curPrice * 0.96; 
-
-                    let signal = "관망 (추세 탐색)";
-                    let badgeClass = "bg-hold";
-                    let strategy = "거래량은 유지되나 확실한 바닥 신호가 포착되기 전입니다. 보합세 관망.";
-                    let isGlowClass = "";
-
-                    if (ticker.sortScore >= 10000) {
-                        signal = "💥 지금 사야해! (안전 마진)";
-                        badgeClass = "bg-buy";
-                        strategy = `오늘 고점 대비 <b>${highToLowPercent}%</b> 급락하여 단기 바닥 지지선에 도달했습니다. 세력의 투매 물량이 소화된 안심 진입 구간!`;
-                        isGlowClass = "glow-buy-card";
-
-                        if (lastNotifiedStates[m] !== 'BUY') {
-                            triggerAlert(`🚨 [인생역전 저점포착] ${s} 진입!!`, `고점 대비 ${highToLowPercent}% 눌림 확인! 지금 진입 시 +5% 익절 확률 최상입니다.`);
-                            lastNotifiedStates[m] = 'BUY';
-                        }
-                    } else if (ticker.signed_change_rate >= 0.08) {
-                        signal = "⚠️ 단기 과열 (진입 금지)";
-                        badgeClass = "bg-stop";
-                        strategy = "고점 신호 유입 중. 여기서 타면 세력들의 차익 실현 물량을 그대로 받아내어 계좌 박살 납니다.";
-                    } else if (ticker.sortScore >= 5000) {
-                        signal = "🚀 거래량 우상향 돌파";
-                        badgeClass = "bg-sell"; 
-                        strategy = "1,500억 이상의 메이저 자금이 하방 매물대를 뚫고 유입되었습니다. 바로 사지 말고 음봉 눌림목 대기.";
-                    }
-
-                    marketContainer.innerHTML += `
-                        <div class="card ${isGlowClass}">
-                            <div class="flex">
-                                <p class="coin-title" onclick="toggleChart('chart_${m}', '${m}')">${s} 🔍</p>
-                                <span class="badge ${badgeClass}">${signal}</span>
-                            </div>
-                            <div class="price-info">현재가: <b>${curPrice.toLocaleString()} 원</b> (<span style="color:${isUp ? 'var(--red)' : 'var(--blue)'}; font-weight:bold;">${isUp ? '+' : ''}${chgRate}%</span>)</div>
-                            <div class="chart-container" id="chart_${m}"></div>
-                            <div class="target-price-box target-buy">🎯 추천 안전 매수선: <span>${Math.floor(calculatedTargetBuy).toLocaleString()} 원 이하</span></div>
-                            <div class="analysis-box">⏳ <b>24H 거래대금:</b> ${(ticker.acc_trade_price_24h / 100000000).toFixed(0)}억 원 | 📉 <b>고점대비 낙폭:</b> ${highToLowPercent}%<br>📢 <b>다중 필터 검증 가이드:</b> ${strategy}</div>
-                        </div>
-                    `;
-                });
-
-            } catch (e) {
-                console.error("실시간 스트리밍 연산 지연", e);
-            }
-        }
-
-        async function startApp() {
-            await fetchTopVolumeCoins(); 
-            updatePrices();             
-            setInterval(updatePrices, 5000);
-            setInterval(async () => { await fetchTopVolumeCoins(); }, 3600000);
-        }
-
-        startApp();
-    </script>
 </body>
 </html>
