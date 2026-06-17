@@ -170,7 +170,7 @@ const translationDic={
     "가오슝":{en:"Kaohsiung",ja:"高雄",zh:"高雄"}
 };
 
-window.onload=function(){ initSelectBoxes(); loadTemplate(); };
+window.onload=function(){ loadTemplate(); };
 
 function toggleTuning(){
     const p=document.getElementById('tuningPanel'), a=document.getElementById('tuningArrow');
@@ -179,25 +179,22 @@ function toggleTuning(){
 function updateLabel(id){ document.getElementById(id+'_label').textContent=document.getElementById(id).value; }
 
 function initSelectBoxes(){
-    if(!localStorage.getItem('tw_master_status')) localStorage.setItem('tw_master_status',JSON.stringify(initialStatusList));
-    if(!localStorage.getItem('tw_master_lang')) localStorage.setItem('tw_master_lang',JSON.stringify(initialLangList));
-    renderSelectOptions();
+    // Firebase 구독으로 초기화 — 여기선 아무것도 안 함
 }
-function renderSelectOptions(){
+function renderSelectOptions(statusList, langList){
     const ss=document.getElementById('status'),ls=document.getElementById('language');
     const sv=ss.value,lv=ls.value;
-    const sl=JSON.parse(localStorage.getItem('tw_master_status')),ll=JSON.parse(localStorage.getItem('tw_master_lang'));
-    ss.innerHTML=""; sl.forEach(i=>{const o=document.createElement('option');o.value=i.id;o.text=i.name;ss.appendChild(o);});
-    ls.innerHTML=""; ll.forEach(i=>{const o=document.createElement('option');o.value=i.id;o.text=i.name;ls.appendChild(o);});
+    ss.innerHTML=""; statusList.forEach(i=>{const o=document.createElement('option');o.value=i.id;o.text=i.name;ss.appendChild(o);});
+    ls.innerHTML=""; langList.forEach(i=>{const o=document.createElement('option');o.value=i.id;o.text=i.name;ls.appendChild(o);});
     if(sv&&ss.querySelector(`option[value="${sv}"]`)) ss.value=sv;
     if(lv&&ls.querySelector(`option[value="${lv}"]`)) ls.value=lv;
 }
-function addStatusItem(){const n=document.getElementById('newStatusInput').value.trim();if(!n)return alert("이름을 입력하세요.");const l=JSON.parse(localStorage.getItem('tw_master_status'));const id="status_"+Date.now();l.push({id,name:n});localStorage.setItem('tw_master_status',JSON.stringify(l));document.getElementById('newStatusInput').value="";renderSelectOptions();document.getElementById('status').value=id;loadTemplate();}
-function renameStatusItem(){const s=document.getElementById('status');const n=document.getElementById('renameStatusInput').value.trim();if(!n)return alert("이름을 입력하세요.");const l=JSON.parse(localStorage.getItem('tw_master_status'));const i=l.find(x=>x.id===s.value);if(i)i.name=n;localStorage.setItem('tw_master_status',JSON.stringify(l));renderSelectOptions();loadTemplate();}
-function deleteStatusItem(){const s=document.getElementById('status');const l=JSON.parse(localStorage.getItem('tw_master_status'));if(l.length<=1)return alert("최소 한 개는 있어야 합니다.");if(!confirm("정말 삭제하시겠습니까?"))return;localStorage.setItem('tw_master_status',JSON.stringify(l.filter(i=>i.id!==s.value)));renderSelectOptions();loadTemplate();}
-function addLangItem(){const n=document.getElementById('newLangInput').value.trim();if(!n)return alert("이름을 입력하세요.");const l=JSON.parse(localStorage.getItem('tw_master_lang'));const id="lang_"+Date.now();l.push({id,name:n});localStorage.setItem('tw_master_lang',JSON.stringify(l));document.getElementById('newLangInput').value="";renderSelectOptions();document.getElementById('language').value=id;loadTemplate();}
-function renameLangItem(){const s=document.getElementById('language');const n=document.getElementById('renameLangInput').value.trim();if(!n)return alert("이름을 입력하세요.");const l=JSON.parse(localStorage.getItem('tw_master_lang'));const i=l.find(x=>x.id===s.value);if(i)i.name=n;localStorage.setItem('tw_master_lang',JSON.stringify(l));renderSelectOptions();loadTemplate();}
-function deleteLangItem(){const s=document.getElementById('language');const l=JSON.parse(localStorage.getItem('tw_master_lang'));if(l.length<=1)return alert("최소 한 개는 있어야 합니다.");if(!confirm("정말 삭제하시겠습니까?"))return;localStorage.setItem('tw_master_lang',JSON.stringify(l.filter(i=>i.id!==s.value)));renderSelectOptions();loadTemplate();}
+function addStatusItem(){const n=document.getElementById('newStatusInput').value.trim();if(!n)return alert("이름을 입력하세요.");const id="status_"+Date.now();const l=[...window._statusList,{id,name:n}];db.ref('master/status').set(l);document.getElementById('newStatusInput').value="";}
+function renameStatusItem(){const s=document.getElementById('status');const n=document.getElementById('renameStatusInput').value.trim();if(!n)return alert("이름을 입력하세요.");const l=window._statusList.map(x=>x.id===s.value?{...x,name:n}:x);db.ref('master/status').set(l);}
+function deleteStatusItem(){const s=document.getElementById('status');if(window._statusList.length<=1)return alert("최소 한 개는 있어야 합니다.");if(!confirm("정말 삭제하시겠습니까?"))return;db.ref('master/status').set(window._statusList.filter(i=>i.id!==s.value));}
+function addLangItem(){const n=document.getElementById('newLangInput').value.trim();if(!n)return alert("이름을 입력하세요.");const id="lang_"+Date.now();const l=[...window._langList,{id,name:n}];db.ref('master/lang').set(l);document.getElementById('newLangInput').value="";}
+function renameLangItem(){const s=document.getElementById('language');const n=document.getElementById('renameLangInput').value.trim();if(!n)return alert("이름을 입력하세요.");const l=window._langList.map(x=>x.id===s.value?{...x,name:n}:x);db.ref('master/lang').set(l);}
+function deleteLangItem(){const s=document.getElementById('language');if(window._langList.length<=1)return alert("최소 한 개는 있어야 합니다.");if(!confirm("정말 삭제하시겠습니까?"))return;db.ref('master/lang').set(window._langList.filter(i=>i.id!==s.value));}
 
 function getStorageKey(){return`tway_final_${document.getElementById('status').value}_${document.getElementById('language').value}`;}
 function loadTemplate(){
@@ -468,6 +465,37 @@ const SLIDER_IDS=['rateKO','pitchKO','rateJA','pitchJA','rateEN','pitchEN'];
 
 function saveSliderValues(){const v={};SLIDER_IDS.forEach(id=>{v[id]=document.getElementById(id).value;});localStorage.setItem('tway_slider_vals',JSON.stringify(v));}
 function loadSliderValues(){const s=localStorage.getItem('tway_slider_vals');if(!s)return;const v=JSON.parse(s);SLIDER_IDS.forEach(id=>{if(v[id]!==undefined){document.getElementById(id).value=v[id];document.getElementById(id+'_label').textContent=v[id];}});}
+
+function subscribeFirebaseMaster(){
+    // status 목록 실시간 구독
+    db.ref('master/status').on('value',snap=>{
+        let data=snap.val();
+        if(!data||!Array.isArray(data)||data.length===0){
+            // 최초 접속 시 기본값 Firebase에 저장
+            data=initialStatusList;
+            db.ref('master/status').set(data);
+        }
+        window._statusList=data;
+        const cur=document.getElementById('status').value;
+        renderSelectOptions(window._statusList, window._langList||[]);
+        if(cur&&document.getElementById('status').querySelector(`option[value="${cur}"]`)) document.getElementById('status').value=cur;
+        loadTemplate();
+    });
+    // lang 목록 실시간 구독
+    db.ref('master/lang').on('value',snap=>{
+        let data=snap.val();
+        if(!data||!Array.isArray(data)||data.length===0){
+            data=initialLangList;
+            db.ref('master/lang').set(data);
+        }
+        window._langList=data;
+        const cur=document.getElementById('language').value;
+        renderSelectOptions(window._statusList||[], window._langList);
+        if(cur&&document.getElementById('language').querySelector(`option[value="${cur}"]`)) document.getElementById('language').value=cur;
+        loadTemplate();
+    });
+}
+
 function subscribeFirebaseTemplates(){db.ref('templates').on('value',snap=>{const d=snap.val();if(!d)return;Object.keys(d).forEach(k=>localStorage.setItem('tway_final_'+k,d[k]));loadTemplate();});}
 function subscribeFirebaseTuning(){db.ref('tuning').on('value',snap=>{const d=snap.val();if(!d)return;SLIDER_IDS.forEach(id=>{if(d[id]!==undefined){document.getElementById(id).value=d[id];document.getElementById(id+'_label').textContent=parseFloat(d[id]).toFixed(2);}});localStorage.setItem('tway_slider_vals',JSON.stringify(d));});}
 function saveTemplateToFirebase(key,value){db.ref('templates/'+key.replace('tway_final_','')).set(value);}
@@ -479,6 +507,7 @@ window.addEventListener('load',function(){
         document.getElementById(id).addEventListener('change',saveTuningToFirebase);
     });
     loadSliderValues();
+    subscribeFirebaseMaster();
     subscribeFirebaseTemplates();
     subscribeFirebaseTuning();
 });
