@@ -358,14 +358,14 @@ function composeFinalScript(){
 
 // 원본 템플릿 줄의 언어 판별 — [변수명] 플레이스홀더 무시하고 주변 텍스트로 판별
 function detectOrigLang(line){
-    // 플레이스홀더 제거 후 판별
     const stripped=line.replace(/\[[^\]]+\]/g,'').replace(/\([^)]+\)/g,'').replace(/（[^）]+）/g,'').replace(/\{[^}]+\}/g,'');
     if(/[가-힣]/.test(stripped)) return 'ko-KR';
-    if(/[ぁ-んァ-ン一-龯]/.test(stripped)) return 'ja-JP';
+    if(/[ぁ-んァ-ン]/.test(stripped)) return 'ja-JP';
+    if(/[一-龥]/.test(stripped)) return 'zh-CN';
     if(/[A-Za-z]{3,}/.test(stripped)) return 'en-US';
-    // 플레이스홀더만 있는 줄은 원본 전체로 재판별
     if(/[가-힣]/.test(line)) return 'ko-KR';
-    if(/[ぁ-んァ-ン一-龯]/.test(line)) return 'ja-JP';
+    if(/[ぁ-んァ-ン]/.test(line)) return 'ja-JP';
+    if(/[一-龥]/.test(line)) return 'zh-CN';
     if(/[A-Za-z]/.test(line)) return 'en-US';
     return 'ko-KR';
 }
