@@ -641,6 +641,24 @@
         composeFinalScript();
     }
 
+    // 편명 숫자를 한 글자씩 읽히도록 변환
+    // 예: TW319 → 한국어: "TW 삼 일 구", 영어: "T W 3 1 9", 일본어: "TW 三 一 九"
+    function expandFlightNumber(flight, lang) {
+        const koDigits = {'0':'영','1':'일','2':'이','3':'삼','4':'사','5':'오','6':'육','7':'칠','8':'팔','9':'구'};
+        const jaDigits = {'0':'ゼロ','1':'いち','2':'に','3':'さん','4':'よん','5':'ご','6':'ろく','7':'なな','8':'はち','9':'きゅう'};
+        const zhDigits = {'0':'零','1':'一','2':'二','3':'三','4':'四','5':'五','6':'六','7':'七','8':'八','9':'九'};
+
+        return flight.split('').map(ch => {
+            if (/[0-9]/.test(ch)) {
+                if (lang === 'ko') return koDigits[ch];
+                if (lang === 'ja') return jaDigits[ch];
+                if (lang === 'zh') return zhDigits[ch];
+                return ch; // 영어는 숫자 그대로 스페이스로 분리해서 TTS가 각각 읽음
+            }
+            return ch;
+        }).join(lang === 'en' ? ' ' : ' ');
+    }
+
     function composeFinalScript() {
         let template = document.getElementById('templateInput').value;
         const flight = document.getElementById('flight_val').value || '___';
@@ -653,10 +671,16 @@
             destZh = translationDic[destKo].zh;
         }
 
-        template = template.replace(/\[편명\]/g, flight).replace(/\[목적지\]/g, destKo);
-        template = template.replace(/\(편명\)/g, flight).replace(/\(목적지\)/g, destEn);
-        template = template.replace(/（편명）/g, flight).replace(/（목적지）/g, destJa);
-        template = template.replace(/\{편명\}/g, flight).replace(/\{목적지\}/g, destZh);
+        // 편명 숫자를 언어별로 한 글자씩 읽히도록 변환
+        const flightKo = expandFlightNumber(flight, 'ko');
+        const flightEn = expandFlightNumber(flight, 'en');
+        const flightJa = expandFlightNumber(flight, 'ja');
+        const flightZh = expandFlightNumber(flight, 'zh');
+
+        template = template.replace(/\[편명\]/g, flightKo).replace(/\[목적지\]/g, destKo);
+        template = template.replace(/\(편명\)/g, flightEn).replace(/\(목적지\)/g, destEn);
+        template = template.replace(/（편명）/g, flightJa).replace(/（목적지）/g, destJa);
+        template = template.replace(/\{편명\}/g, flightZh).replace(/\{목적지\}/g, destZh);
 
         document.getElementById('scriptPreview').innerText = template;
     }
