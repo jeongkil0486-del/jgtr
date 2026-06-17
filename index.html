@@ -806,32 +806,6 @@
         btn.disabled = false;
     }
 
-    // ── 슬라이더 값 localStorage 저장/복원 ───────────────
-    const SLIDER_IDS = ['rateJA','pitchJA','rateKO','pitchKO','rateEN','pitchEN'];
-
-    function saveSliderValues() {
-        const vals = {};
-        SLIDER_IDS.forEach(id => { vals[id] = document.getElementById(id).value; });
-        localStorage.setItem('tway_slider_vals', JSON.stringify(vals));
-    }
-
-    function loadSliderValues() {
-        const saved = localStorage.getItem('tway_slider_vals');
-        if (!saved) return;
-        const vals = JSON.parse(saved);
-        SLIDER_IDS.forEach(id => {
-            if (vals[id] !== undefined) {
-                document.getElementById(id).value = vals[id];
-                document.getElementById(id + '_label').textContent = vals[id];
-            }
-        });
-    }
-
-    // 슬라이더 oninput 시 localStorage에도 저장
-    SLIDER_IDS.forEach(id => {
-        document.getElementById(id).addEventListener('input', saveSliderValues);
-    });
-
 </script>
 
 <!-- Firebase Realtime Database (compat SDK) -->
@@ -852,40 +826,55 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    const SLIDER_IDS = ['rateJA','pitchJA','rateKO','pitchKO','rateEN','pitchEN'];
+
+    // ── 슬라이더 localStorage 저장 ───────────────────────
+    function saveSliderValues() {
+        const vals = {};
+        SLIDER_IDS.forEach(id => { vals[id] = document.getElementById(id).value; });
+        localStorage.setItem('tway_slider_vals', JSON.stringify(vals));
+    }
+
+    function loadSliderValues() {
+        const saved = localStorage.getItem('tway_slider_vals');
+        if (!saved) return;
+        const vals = JSON.parse(saved);
+        SLIDER_IDS.forEach(id => {
+            if (vals[id] !== undefined) {
+                document.getElementById(id).value = vals[id];
+                document.getElementById(id + '_label').textContent = vals[id];
+            }
+        });
+    }
+
     // ── Firebase → 템플릿 실시간 수신 ────────────────────
-    // DB 구조: /templates/{statusId}_{langId} = "방송문 내용"
     function subscribeFirebaseTemplates() {
         db.ref('templates').on('value', snapshot => {
             const data = snapshot.val();
             if (!data) return;
-            // Firebase에서 받은 템플릿을 localStorage에 덮어씀 (실시간 반영)
             Object.keys(data).forEach(key => {
                 localStorage.setItem('tway_final_' + key, data[key]);
             });
-            // 현재 보고있는 화면 즉시 갱신
             loadTemplate();
         });
     }
 
-    // ── Firebase → 슬라이더 값 실시간 수신 ──────────────
-    // DB 구조: /tuning/rateJA, pitchJA, rateKO ... 
+    // ── Firebase → 슬라이더 실시간 수신 ─────────────────
     function subscribeFirebaseTuning() {
         db.ref('tuning').on('value', snapshot => {
             const data = snapshot.val();
             if (!data) return;
-            const SLIDER_IDS = ['rateJA','pitchJA','rateKO','pitchKO','rateEN','pitchEN'];
             SLIDER_IDS.forEach(id => {
                 if (data[id] !== undefined) {
                     document.getElementById(id).value = data[id];
-                    document.getElementById(id + '_label').textContent = data[id];
+                    document.getElementById(id + '_label').textContent = parseFloat(data[id]).toFixed(2);
                 }
             });
-            // localStorage도 같이 업데이트
             localStorage.setItem('tway_slider_vals', JSON.stringify(data));
         });
     }
 
-    // ── Firebase에 템플릿 저장 (saveTemplate 시 호출) ────
+    // ── Firebase에 템플릿 저장 ───────────────────────────
     function saveTemplateToFirebase(key, value) {
         const fbKey = key.replace('tway_final_', '');
         db.ref('templates/' + fbKey).set(value);
@@ -893,14 +882,12 @@
 
     // ── Firebase에 슬라이더 값 저장 ──────────────────────
     function saveTuningToFirebase() {
-        const SLIDER_IDS = ['rateJA','pitchJA','rateKO','pitchKO','rateEN','pitchEN'];
         const vals = {};
         SLIDER_IDS.forEach(id => { vals[id] = parseFloat(document.getElementById(id).value); });
         db.ref('tuning').set(vals);
     }
 
-    // saveTemplate 함수 오버라이드 → Firebase도 같이 저장
-    const _origSaveTemplate = window.saveTemplate;
+    // ── saveTemplate 오버라이드 → Firebase도 저장 ────────
     window.saveTemplate = function() {
         const key = getStorageKey();
         const val = document.getElementById('templateInput').value;
@@ -910,15 +897,21 @@
         lockTemplate();
     };
 
-    // 슬라이더 변경 시 Firebase에도 저장
-    ['rateJA','pitchJA','rateKO','pitchKO','rateEN','pitchEN'].forEach(id => {
-        document.getElementById(id).addEventListener('change', saveTuningToFirebase);
-    });
+    // ── 페이지 완전 로드 후 초기화 ───────────────────────
+    window.addEventListener('load', function() {
+        // 슬라이더 이벤트 등록
+        SLIDER_IDS.forEach(id => {
+            document.getElementById(id).addEventListener('input', saveSliderValues);
+            document.getElementById(id).addEventListener('change', saveTuningToFirebase);
+        });
 
-    // 페이지 로드 시 순서: localStorage 슬라이더 복원 → Firebase 구독 시작
-    loadSliderValues();
-    subscribeFirebaseTemplates();
-    subscribeFirebaseTuning();
+        // localStorage 슬라이더 복원 (Firebase 수신 전 기본값으로)
+        loadSliderValues();
+
+        // Firebase 구독 시작 (수신되면 loadTemplate 자동 호출)
+        subscribeFirebaseTemplates();
+        subscribeFirebaseTuning();
+    });
 </script>
 
 </body>
