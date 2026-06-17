@@ -3,1007 +3,485 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>t'way AI 안내 방송 시스템 (성우 커스텀)</title>
+    <title>Trinity 안내 방송</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f8fafc;
-            margin: 0;
-            padding: 12px;
-            color: #1e293b;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        :root {
+            --navy:#0B1E3D; --navy-l:#132847; --gold:#C9A84C; --gold-l:#E8C97A;
+            --gold-dim:rgba(201,168,76,0.15); --white:#FFF; --g1:#F4F6FA;
+            --g2:#E8ECF2; --g3:#94A3B8; --g4:#475569; --red:#E53935;
+            --green:#10B981; --amber:#F59E0B; --text:#1E293B; --r:12px;
         }
-        .container {
-            background-color: white;
-            padding: 20px 15px;
-            border-radius: 16px;
-            box-shadow: 0 4px 25px rgba(0,0,0,0.05);
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            box-sizing: border-box;
-        }
-        h2 {
-            color: #d62527; 
-            text-align: center;
-            margin: 5px 0 20px 0;
-            font-size: 22px;
-            font-weight: 800;
-            border-bottom: 3px solid #d62527;
-            padding-bottom: 12px;
-        }
-        .section {
-            background: #f1f5f9;
-            padding: 14px;
-            border-radius: 10px;
-            margin-bottom: 16px;
-        }
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 700;
-            color: #334155;
-            font-size: 14px;
-        }
-        .flex-group {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        select, textarea, input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 14px;
-            -webkit-appearance: none;
-        }
-        textarea {
-            resize: vertical;
-            font-family: inherit;
-            background-color: #e2e8f0; 
-            line-height: 1.6;
-            font-size: 13px;
-        }
-        #dynamic-inputs-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .dynamic-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #ffffff;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-        }
-        .dynamic-group label {
-            font-size: 13px;
-            color: #1e293b;
-            margin-bottom: 0;
-            width: 85px;
-            flex-shrink: 0;
-        }
-        .preview-box {
-            background-color: #fff5f5;
-            border-left: 4px solid #d62527;
-            padding: 12px;
-            margin-top: 15px;
-            border-radius: 6px;
-            min-height: 50px;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #1e293b;
-            word-break: break-all;
-            white-space: pre-wrap;
-        }
-        .btn-flex {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        button {
-            padding: 10px 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: 700;
-            transition: background 0.2s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .btn-primary { background-color: #3b82f6; color: white; flex: 1; }
-        .btn-success { background-color: #10b981; color: white; flex: 1; }
-        .btn-lock { background-color: #64748b; color: white; }
-        .btn-edit { background-color: #475569; color: white; padding: 10px; font-size: 12px; white-space: nowrap; }
-        .btn-del { background-color: #ef4444; color: white; padding: 10px; font-size: 12px; white-space: nowrap; }
-        
-        .audio-controls {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .btn-play { background-color: #d62527; color: white; font-size: 16px; padding: 14px; }
-        .btn-pause { background-color: #f59e0b; color: white; font-size: 16px; padding: 14px; }
-        
-        button:active { opacity: 0.8; }
-        .management-block {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 8px;
-        }
-        .engine-tabs {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 12px;
-        }
-        .tab-btn {
-            flex: 1;
-            padding: 8px;
-            background: #e2e8f0;
-            color: #475569;
-            font-size: 13px;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-        .tab-btn.active {
-            background: #d62527;
-            color: white;
-        }
-        .voice-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        .voice-lang-label {
-            font-size: 12px;
-            font-weight: 700;
-            color: #334155;
-            width: 70px;
-            flex-shrink: 0;
-        }
-        .tuning-block {
-            margin-top: 10px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .tuning-header {
-            background: #f1f5f9;
-            padding: 9px 12px;
-            font-size: 13px;
-            font-weight: 700;
-            color: #475569;
-            cursor: pointer;
-            user-select: none;
-        }
-        .tuning-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            font-size: 12px;
-            color: #334155;
-            border-top: 1px solid #f1f5f9;
-        }
-        .tuning-row span:first-child { width: 90px; flex-shrink: 0; }
-        .tuning-row input[type=range] { flex: 1; }
-        .slider-val {
-            width: 32px;
-            text-align: right;
-            font-weight: 700;
-            color: #d62527;
-            font-size: 12px;
-        }
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Inter',-apple-system,sans-serif;background:linear-gradient(145deg,#0B1E3D 0%,#1a3a6e 100%);min-height:100vh;padding:16px;color:var(--text);}
+        .wrap{max-width:620px;margin:0 auto;}
+        .hdr{text-align:center;padding:28px 0 20px;}
+        .hdr-badge{display:inline-block;background:var(--gold-dim);border:1px solid var(--gold);color:var(--gold-l);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:12px;}
+        .hdr h1{font-size:26px;font-weight:900;color:#fff;letter-spacing:-0.5px;}
+        .hdr h1 span{color:var(--gold);}
+        .hdr-sub{font-size:11px;color:var(--g3);margin-top:6px;letter-spacing:1px;}
+        .card{background:#fff;border-radius:var(--r);padding:18px;margin-bottom:12px;box-shadow:0 8px 32px rgba(11,30,61,.12);}
+        .card-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--navy);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+        .card-title::before{content:'';display:block;width:3px;height:14px;background:var(--gold);border-radius:2px;}
+        select,input[type=text],input[type=password]{width:100%;padding:11px 14px;border:1.5px solid var(--g2);border-radius:8px;font-size:14px;font-family:inherit;color:var(--text);background:var(--g1);-webkit-appearance:none;}
+        select:focus,input:focus{outline:none;border-color:var(--gold);}
+        textarea{width:100%;padding:12px 14px;border:1.5px solid var(--g2);border-radius:8px;font-size:13px;font-family:inherit;line-height:1.7;resize:vertical;background:var(--g2);color:var(--text);}
+        textarea:focus{outline:none;border-color:var(--gold);}
+        button{border:none;border-radius:8px;font-size:13px;font-family:inherit;font-weight:700;cursor:pointer;padding:10px 16px;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:4px;}
+        button:active{transform:scale(.97);}
+        .btn-gold{background:var(--gold);color:var(--navy);}
+        .btn-slate{background:var(--g4);color:#fff;}
+        .btn-green{background:var(--green);color:#fff;}
+        .btn-red{background:var(--red);color:#fff;}
+        .frow{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+        .frow:last-child{margin-bottom:0;}
+        .sel-row{display:flex;gap:8px;}
+        .mgmt{display:none;margin-top:14px;padding-top:14px;border-top:1px dashed var(--g2);}
+        .mgmt-b{background:var(--g1);border-radius:8px;padding:12px;margin-bottom:8px;}
+        .mgmt-lbl{font-size:11px;font-weight:700;color:var(--g4);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+        .tuning-block{display:none;background:var(--g1);border-radius:8px;overflow:hidden;margin-top:12px;}
+        .tuning-hdr{padding:10px 14px;font-size:12px;font-weight:700;color:var(--navy);cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;}
+        .tuning-row{display:flex;align-items:center;gap:10px;padding:7px 14px;border-top:1px solid var(--g2);font-size:12px;color:var(--g4);}
+        .tuning-row span:first-child{width:95px;flex-shrink:0;font-weight:500;}
+        .tuning-row input[type=range]{flex:1;accent-color:var(--gold);}
+        .sv{width:34px;text-align:right;font-weight:700;color:var(--navy);font-size:12px;}
+        .save-grp{display:none;gap:8px;margin-top:10px;}
+        .save-grp.show{display:flex;}
+        .dyn-grp{display:flex;align-items:center;gap:10px;background:var(--g1);border:1.5px solid var(--g2);padding:10px 14px;border-radius:8px;margin-bottom:8px;}
+        .dyn-grp:last-child{margin-bottom:0;}
+        .dyn-grp label{font-size:12px;font-weight:600;color:var(--g4);width:80px;flex-shrink:0;}
+        .dyn-grp input{background:#fff;margin:0;}
+        .preview-box{background:linear-gradient(135deg,#0B1E3D 0%,#132847 100%);border-left:4px solid var(--gold);border-radius:8px;padding:16px;min-height:60px;font-size:13px;line-height:1.8;color:#CBD5E1;white-space:pre-wrap;word-break:break-all;}
+        .play-bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;}
+        .btn-play-main{background:linear-gradient(135deg,var(--gold) 0%,var(--gold-l) 100%);color:var(--navy);font-size:16px;font-weight:900;padding:16px;border-radius:10px;}
+        .btn-pause-main{background:var(--navy-l);color:#fff;font-size:15px;font-weight:700;padding:16px;border-radius:10px;border:1.5px solid rgba(201,168,76,.3);}
+        .footer{text-align:center;padding:16px 0 8px;font-size:11px;color:rgba(255,255,255,.2);letter-spacing:1px;}
+        .trans-badge{display:none;font-size:11px;color:var(--gold);font-weight:600;padding:3px 10px;background:var(--gold-dim);border-radius:20px;margin-left:6px;}
     </style>
-    <script type="module">
-        // Firebase 초기화는 모듈 방식으로 별도 처리
-    </script>
 </head>
 <body>
+<div class="wrap">
+    <div class="hdr">
+        <div class="hdr-badge">✈ AI Announcement System</div>
+        <h1>Trinity <span>안내 방송</span></h1>
+        <div class="hdr-sub">Powered by Google WaveNet TTS</div>
+    </div>
 
-<div class="container">
-    <h2>✈️ t'way AI 안내 방송</h2>
-    
-    <!-- 1. 방송 선택 -->
-    <div class="section">
-        <label>1. 방송 선택</label>
-        <div class="flex-group">
-            <select id="status" onchange="loadTemplate()" style="flex: 1.5;"></select>
-            <select id="language" onchange="loadTemplate()" style="flex: 1.2;"></select>
+    <!-- 방송 선택 -->
+    <div class="card">
+        <div class="card-title">방송 선택</div>
+        <div class="sel-row">
+            <select id="status" onchange="loadTemplate()" style="flex:1.5;"></select>
+            <select id="language" onchange="loadTemplate()" style="flex:1.2;"></select>
         </div>
-
-        <!-- 관리 마스터 패널 -->
-        <div id="master-management-panel" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1;">
-            <div class="management-block">
-                <label style="font-size: 12px; color: #d62527;">🛠️ 왼쪽 방송 항목 관리</label>
-                <div class="flex-group" style="margin-bottom: 6px;">
-                    <input type="text" id="newStatusInput" placeholder="새 항목 이름 추가">
-                    <button class="btn-success" style="font-size:12px; padding:10px;" onclick="addStatusItem()">➕ 추가</button>
-                </div>
-                <div class="flex-group">
-                    <input type="text" id="renameStatusInput" placeholder="선택 항목 이름 수정">
-                    <button class="btn-edit" onclick="renameStatusItem()">✏️ 수정</button>
-                    <button class="btn-del" onclick="deleteStatusItem()">❌ 삭제</button>
-                </div>
+        <div class="mgmt" id="master-management-panel">
+            <div class="mgmt-b">
+                <div class="mgmt-lbl">방송 항목 관리</div>
+                <div class="frow"><input type="text" id="newStatusInput" placeholder="새 항목 이름"><button class="btn-green" style="white-space:nowrap;font-size:12px;" onclick="addStatusItem()">+ 추가</button></div>
+                <div class="frow"><input type="text" id="renameStatusInput" placeholder="이름 수정"><button class="btn-slate" style="font-size:12px;" onclick="renameStatusItem()">수정</button><button class="btn-red" style="font-size:12px;" onclick="deleteStatusItem()">삭제</button></div>
             </div>
-
-            <div class="management-block" style="margin-top: 10px;">
-                <label style="font-size: 12px; color: #3b82f6;">🛠️ 오른쪽 언어 항목 관리</label>
-                <div class="flex-group" style="margin-bottom: 6px;">
-                    <input type="text" id="newLangInput" placeholder="새 언어 이름 추가">
-                    <button class="btn-success" style="font-size:12px; padding:10px;" onclick="addLangItem()">➕ 추가</button>
-                </div>
-                <div class="flex-group">
-                    <input type="text" id="renameLangInput" placeholder="선택 언어 이름 수정">
-                    <button class="btn-edit" onclick="renameLangItem()">✏️ 수정</button>
-                    <button class="btn-del" onclick="deleteLangItem()">❌ 삭제</button>
-                </div>
+            <div class="mgmt-b">
+                <div class="mgmt-lbl">언어 항목 관리</div>
+                <div class="frow"><input type="text" id="newLangInput" placeholder="새 언어 이름"><button class="btn-green" style="white-space:nowrap;font-size:12px;" onclick="addLangItem()">+ 추가</button></div>
+                <div class="frow"><input type="text" id="renameLangInput" placeholder="이름 수정"><button class="btn-slate" style="font-size:12px;" onclick="renameLangItem()">수정</button><button class="btn-red" style="font-size:12px;" onclick="deleteLangItem()">삭제</button></div>
             </div>
         </div>
     </div>
 
-    <!-- 🔊 성우 및 음성 품질 설정 -->
-    <div class="section">
-        <label>🎙️ 언어별 성우 설정</label>
-
-        <div id="panelBrowser">
-            <div class="voice-row">
-                <span class="voice-lang-label">🇯🇵 일본어</span>
-                <select id="voiceSelectJA" onchange="saveSelectedVoices()" style="flex:1;"></select>
-            </div>
-            <div class="voice-row">
-                <span class="voice-lang-label">🇰🇷 한국어</span>
-                <select id="voiceSelectKO" onchange="saveSelectedVoices()" style="flex:1;"></select>
-            </div>
-
-            <!-- 언어별 속도/피치 튜닝 -->
-            <div class="tuning-block" id="tuningBlock" style="display:none;">
-                <div class="tuning-header" onclick="toggleTuning()">⚙️ 언어별 속도·피치 세부 조정 <span id="tuningArrow">▼</span></div>
-                <div id="tuningPanel" style="display:none; margin-top:10px;">
-                    <div class="tuning-row">
-                        <span>🇯🇵 일본어 속도</span>
-                        <input type="range" id="rateJA" min="0.5" max="1.3" step="0.05" value="1.05" oninput="updateLabel('rateJA')">
-                        <span id="rateJA_label" class="slider-val">1.05</span>
-                    </div>
-                    <div class="tuning-row">
-                        <span>🇯🇵 일본어 피치</span>
-                        <input type="range" id="pitchJA" min="0.5" max="2.0" step="0.05" value="1.05" oninput="updateLabel('pitchJA')">
-                        <span id="pitchJA_label" class="slider-val">1.05</span>
-                    </div>
-                    <div class="tuning-row">
-                        <span>🇰🇷 한국어 속도</span>
-                        <input type="range" id="rateKO" min="0.5" max="1.3" step="0.05" value="0.88" oninput="updateLabel('rateKO')">
-                        <span id="rateKO_label" class="slider-val">0.88</span>
-                    </div>
-                    <div class="tuning-row">
-                        <span>🇰🇷 한국어 피치</span>
-                        <input type="range" id="pitchKO" min="0.5" max="2.0" step="0.05" value="1.00" oninput="updateLabel('pitchKO')">
-                        <span id="pitchKO_label" class="slider-val">1.00</span>
-                    </div>
-                    <div class="tuning-row">
-                        <span>🇺🇸 영어 속도</span>
-                        <input type="range" id="rateEN" min="0.5" max="1.3" step="0.05" value="0.90" oninput="updateLabel('rateEN')">
-                        <span id="rateEN_label" class="slider-val">0.90</span>
-                    </div>
-                    <div class="tuning-row">
-                        <span>🇺🇸 영어 피치</span>
-                        <input type="range" id="pitchEN" min="0.5" max="2.0" step="0.05" value="1.00" oninput="updateLabel('pitchEN')">
-                        <span id="pitchEN_label" class="slider-val">1.00</span>
-                    </div>
-                </div>
-            </div>
-    </div>
-
-    <!-- 2. 방송문 -->
-    <div class="section">
-        <label id="templateLabel">2. 방송문</label>
-        
-        <div class="flex-group">
-            <input type="password" id="passwordInput" placeholder="비밀번호 입력" style="flex: 1.2;">
-            <button class="btn-primary" onclick="unlockTemplate()">🔓 해제</button>
-            <button class="btn-lock" onclick="lockTemplate()">🔒 잠금</button>
+    <!-- 방송문 -->
+    <div class="card">
+        <div class="card-title">방송문</div>
+        <div class="frow">
+            <input type="password" id="passwordInput" placeholder="관리자 비밀번호" style="flex:1;">
+            <button class="btn-gold" onclick="unlockTemplate()">해제</button>
+            <button class="btn-slate" onclick="lockTemplate()">잠금</button>
         </div>
-
-        <textarea id="templateInput" rows="12" readonly disabled oninput="renderDynamicInputs()"></textarea>
-        
-        <div class="btn-flex" id="save-control-group" style="display: none;">
-            <button class="btn-success" onclick="saveTemplate()">💾 현재 조합에 저장</button>
-            <button class="btn-lock" onclick="resetDefaultTemplate()">🔄 초기화</button>
+        <textarea id="templateInput" rows="10" readonly disabled oninput="renderDynamicInputs()"></textarea>
+        <div class="save-grp" id="save-control-group">
+            <button class="btn-green" style="flex:1;" onclick="saveTemplate()">💾 저장</button>
+            <button class="btn-slate" onclick="resetDefaultTemplate()">초기화</button>
+        </div>
+        <div class="tuning-block" id="tuningBlock">
+            <div class="tuning-hdr" onclick="toggleTuning()"><span>⚙️ 속도 · 피치 조정</span><span id="tuningArrow">▼</span></div>
+            <div id="tuningPanel" style="display:none;">
+                <div class="tuning-row"><span>🇰🇷 한국어 속도</span><input type="range" id="rateKO" min="0.5" max="1.5" step="0.05" value="0.95" oninput="updateLabel('rateKO')"><span id="rateKO_label" class="sv">0.95</span></div>
+                <div class="tuning-row"><span>🇰🇷 한국어 피치</span><input type="range" id="pitchKO" min="-10" max="10" step="0.5" value="0" oninput="updateLabel('pitchKO')"><span id="pitchKO_label" class="sv">0</span></div>
+                <div class="tuning-row"><span>🇯🇵 일본어 속도</span><input type="range" id="rateJA" min="0.5" max="1.5" step="0.05" value="1.05" oninput="updateLabel('rateJA')"><span id="rateJA_label" class="sv">1.05</span></div>
+                <div class="tuning-row"><span>🇯🇵 일본어 피치</span><input type="range" id="pitchJA" min="-10" max="10" step="0.5" value="0" oninput="updateLabel('pitchJA')"><span id="pitchJA_label" class="sv">0</span></div>
+                <div class="tuning-row"><span>🇺🇸 영어 속도</span><input type="range" id="rateEN" min="0.5" max="1.5" step="0.05" value="0.95" oninput="updateLabel('rateEN')"><span id="rateEN_label" class="sv">0.95</span></div>
+                <div class="tuning-row"><span>🇺🇸 영어 피치</span><input type="range" id="pitchEN" min="-10" max="10" step="0.5" value="0" oninput="updateLabel('pitchEN')"><span id="pitchEN_label" class="sv">0</span></div>
+            </div>
         </div>
     </div>
 
-    <!-- 3. 공란 입력 -->
-    <div class="section" id="dynamic-section" style="display:none;">
-        <label>3. 공란 입력</label>
+    <!-- 공란 입력 -->
+    <div class="card" id="dynamic-section" style="display:none;">
+        <div class="card-title">공란 입력 <span class="trans-badge" id="translatingBadge">🔄 번역 중...</span></div>
         <div id="dynamic-inputs-container"></div>
     </div>
 
-    <!-- 최종 방송문 미리보기 -->
-    <label>📢 최종 완성 방송문 미리보기</label>
-    <div class="preview-box" id="scriptPreview"></div>
-
-    <!-- 4. 오디오 컨트롤 -->
-    <div class="audio-controls">
-        <button class="btn-play" onclick="playTTS()">🔊 방송 시작</button>
-        <button class="btn-pause" id="pauseBtn" onclick="togglePause()">⏸️ 일시 정지</button>
+    <!-- 미리보기 -->
+    <div class="card">
+        <div class="card-title">최종 방송문</div>
+        <div class="preview-box" id="scriptPreview"></div>
     </div>
+
+    <div class="play-bar">
+        <button class="btn-play-main" onclick="playTTS()">🔊 방송 시작</button>
+        <button class="btn-pause-main" id="pauseBtn" onclick="togglePause()">⏸ 일시 정지</button>
+    </div>
+    <div class="footer">TRINITY AIRLINES · AI ANNOUNCEMENT SYSTEM</div>
 </div>
 
 <script>
-    const ADMIN_PASSWORD = "0501";
-    let isPaused = false;
-    let currentSentenceIndex = 0;
-    let speechParts = [];
-    let browserVoices = [];
+const ADMIN_PASSWORD = "0501";
+const GOOGLE_TTS_KEY = 'AIzaSyDPwwNLJSnPoADJn41CuZevx7j6-KWRwiQ';
 
-    function toggleTuning() {
-        const p = document.getElementById('tuningPanel');
-        const arrow = document.getElementById('tuningArrow');
-        const shown = p.style.display !== 'none';
-        p.style.display = shown ? 'none' : 'block';
-        arrow.textContent = shown ? '▼' : '▲';
-    }
+const GOOGLE_VOICES = {
+    'ko-KR':{ languageCode:'ko-KR', name:'ko-KR-Wavenet-A', ssmlGender:'FEMALE' },
+    'ja-JP':{ languageCode:'ja-JP', name:'ja-JP-Wavenet-B', ssmlGender:'FEMALE' },
+    'en-US':{ languageCode:'en-US', name:'en-US-Wavenet-F', ssmlGender:'FEMALE' },
+    'zh-CN':{ languageCode:'cmn-CN', name:'cmn-CN-Wavenet-A', ssmlGender:'FEMALE' },
+};
 
-    function updateLabel(id) {
-        document.getElementById(id + '_label').textContent = document.getElementById(id).value;
-    }
+let isPaused=false, currentSentenceIndex=0, speechParts=[];
+let varValues={}, translateTimer=null;
 
-    const initialStatusList = [
-        { id: "status_1", name: "우선탑승 (Pre-boarding)" },
-        { id: "status_2", name: "탑승중 (Boarding)" },
-        { id: "status_3", name: "탑승마감 (Final Call)" }
-    ];
+const initialStatusList=[
+    {id:"status_1",name:"우선탑승 (Pre-boarding)"},
+    {id:"status_2",name:"탑승중 (Boarding)"},
+    {id:"status_3",name:"탑승마감 (Final Call)"}
+];
+const initialLangList=[
+    {id:"lang_1",name:"종합 방송"},
+    {id:"lang_2",name:"한국어 전용"},
+    {id:"lang_3",name:"영어 전용"}
+];
+const defaultTemplates={
+    "status_1_lang_1":`더 멋진 변화의 시작, 티웨이항공에서 안내 말씀드리겠습니다. 잠시 후 티웨이항공 [편명] 편 [목적지]행 항공기의 탑승이 시작될 예정입니다. 원활하고 신속한 탑승을 위하여 몸이 불편하신 손님 및 유아를 동반하신 손님, 플래티넘 손님께서 먼저 탑승을 준비하여 주시기 바랍니다. 감사합니다.\n\nYour attention please. T'way Air flight (편명) bound for (목적지) is now ready for boarding. For efficient boarding, we will invite passengers who need special assistance, or are traveling with infants, business saver, t'way plus Platinum to board first. Thank you.\n\nT'way 航空よりご案内申し上げます。まもなくT'way 航空（편명）便（목적지）行きのご搭乗を開始させて頂きます。まず始めに、体の具合が悪いお客様およびお子様連れのお客様より機内へのご案内をさせて頂きますので、搭乗券をお持ちになって、搭乗口前にお越しください。`
+};
+const translationDic={
+    "오사카":{en:"Osaka",ja:"大阪",zh:"大阪"},
+    "후쿠오카":{en:"Fukuoka",ja:"福岡",zh:"福冈"},
+    "나리타":{en:"Narita",ja:"成田",zh:"成田"},
+    "삿포로":{en:"Sapporo",ja:"札幌",zh:"扎幌"},
+    "나트랑":{en:"Nha Trang",ja:"ニャチャン",zh:"芽庄"},
+    "홍콩":{en:"Hong Kong",ja:"香港",zh:"香港"},
+    "가오슝":{en:"Kaohsiung",ja:"高雄",zh:"高雄"}
+};
 
-    const initialLangList = [
-        { id: "lang_1", name: "종합 방송" },
-        { id: "lang_2", name: "한국어 전용" },
-        { id: "lang_3", name: "영어 전용" }
-    ];
+window.onload=function(){ initSelectBoxes(); loadTemplate(); };
 
-    const defaultTemplates = {
-        "status_1_lang_1": `더 멋진 변화의 시작, 티웨이항공에서 안내 말씀드리겠습니다. 잠시 후 티웨이항공 [편명] 편 [목적지]행 항공기의 탑승이 시작될 예정입니다. 원활하고 신속한 탑승을 위하여 몸이 불편하신 손님 및 유아를 동반하신 손님, 플래티넘 손님께서 먼저 탑승을 준비하여 주시기 바랍니다. 감사합니다.\n\nYour attention please. T’way Air flight (편명) bound for (목적지) is now ready for boarding. For efficient boarding, we will invite passengers who need special assistance, or are traveling with infants, business saver, t’way plus Platinum to board first. Thank you.\n\nT’way 航空よりご案内申し上げます。まもなくT’way 航空（편명）便（목적지）行きのご搭乗を開始させて頂きます。まず始めに、体の具合が悪いお客様およびお子様連れのお客様より機内へのご案内をさせて頂きますので、搭乗券をお持ちになって、搭乗口前にお越しください。`
-    };
+function toggleTuning(){
+    const p=document.getElementById('tuningPanel'), a=document.getElementById('tuningArrow');
+    const s=p.style.display!=='none'; p.style.display=s?'none':'block'; a.textContent=s?'▼':'▲';
+}
+function updateLabel(id){ document.getElementById(id+'_label').textContent=document.getElementById(id).value; }
 
-    const translationDic = {
-        "오사카": { en: "Osaka", ja: "大阪", zh: "大阪" },
-        "후쿠오카": { en: "Fukuoka", ja: "福岡", zh: "福冈" },
-        "나리타": { en: "Narita", ja: "成田", zh: "成田" },
-        "삿포로": { en: "Sapporo", ja: "札幌", zh: "扎幌" },
-        "나트랑": { en: "Nha Trang", ja: "ニャチャン", zh: "芽庄" },
-        "홍콩": { en: "Hong Kong", ja: "香港", zh: "香港" },
-        "가오슝": { en: "Kaohsiung", ja: "高雄", zh: "高雄" }
-    };
+function initSelectBoxes(){
+    if(!localStorage.getItem('tw_master_status')) localStorage.setItem('tw_master_status',JSON.stringify(initialStatusList));
+    if(!localStorage.getItem('tw_master_lang')) localStorage.setItem('tw_master_lang',JSON.stringify(initialLangList));
+    renderSelectOptions();
+}
+function renderSelectOptions(){
+    const ss=document.getElementById('status'),ls=document.getElementById('language');
+    const sv=ss.value,lv=ls.value;
+    const sl=JSON.parse(localStorage.getItem('tw_master_status')),ll=JSON.parse(localStorage.getItem('tw_master_lang'));
+    ss.innerHTML=""; sl.forEach(i=>{const o=document.createElement('option');o.value=i.id;o.text=i.name;ss.appendChild(o);});
+    ls.innerHTML=""; ll.forEach(i=>{const o=document.createElement('option');o.value=i.id;o.text=i.name;ls.appendChild(o);});
+    if(sv&&ss.querySelector(`option[value="${sv}"]`)) ss.value=sv;
+    if(lv&&ls.querySelector(`option[value="${lv}"]`)) ls.value=lv;
+}
+function addStatusItem(){const n=document.getElementById('newStatusInput').value.trim();if(!n)return alert("이름을 입력하세요.");const l=JSON.parse(localStorage.getItem('tw_master_status'));const id="status_"+Date.now();l.push({id,name:n});localStorage.setItem('tw_master_status',JSON.stringify(l));document.getElementById('newStatusInput').value="";renderSelectOptions();document.getElementById('status').value=id;loadTemplate();}
+function renameStatusItem(){const s=document.getElementById('status');const n=document.getElementById('renameStatusInput').value.trim();if(!n)return alert("이름을 입력하세요.");const l=JSON.parse(localStorage.getItem('tw_master_status'));const i=l.find(x=>x.id===s.value);if(i)i.name=n;localStorage.setItem('tw_master_status',JSON.stringify(l));renderSelectOptions();loadTemplate();}
+function deleteStatusItem(){const s=document.getElementById('status');const l=JSON.parse(localStorage.getItem('tw_master_status'));if(l.length<=1)return alert("최소 한 개는 있어야 합니다.");if(!confirm("정말 삭제하시겠습니까?"))return;localStorage.setItem('tw_master_status',JSON.stringify(l.filter(i=>i.id!==s.value)));renderSelectOptions();loadTemplate();}
+function addLangItem(){const n=document.getElementById('newLangInput').value.trim();if(!n)return alert("이름을 입력하세요.");const l=JSON.parse(localStorage.getItem('tw_master_lang'));const id="lang_"+Date.now();l.push({id,name:n});localStorage.setItem('tw_master_lang',JSON.stringify(l));document.getElementById('newLangInput').value="";renderSelectOptions();document.getElementById('language').value=id;loadTemplate();}
+function renameLangItem(){const s=document.getElementById('language');const n=document.getElementById('renameLangInput').value.trim();if(!n)return alert("이름을 입력하세요.");const l=JSON.parse(localStorage.getItem('tw_master_lang'));const i=l.find(x=>x.id===s.value);if(i)i.name=n;localStorage.setItem('tw_master_lang',JSON.stringify(l));renderSelectOptions();loadTemplate();}
+function deleteLangItem(){const s=document.getElementById('language');const l=JSON.parse(localStorage.getItem('tw_master_lang'));if(l.length<=1)return alert("최소 한 개는 있어야 합니다.");if(!confirm("정말 삭제하시겠습니까?"))return;localStorage.setItem('tw_master_lang',JSON.stringify(l.filter(i=>i.id!==s.value)));renderSelectOptions();loadTemplate();}
 
-    window.onload = function() {
-        loadVoices();
-        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = function() {
-                loadVoices();
-                populateVoiceSelectors();
-            };
+function getStorageKey(){return`tway_final_${document.getElementById('status').value}_${document.getElementById('language').value}`;}
+function loadTemplate(){
+    const ss=document.getElementById('status'),ls=document.getElementById('language');
+    if(!ss.options.length||!ls.options.length)return;
+    document.getElementById('renameStatusInput').value=ss.options[ss.selectedIndex].text;
+    document.getElementById('renameLangInput').value=ls.options[ls.selectedIndex].text;
+    const key=getStorageKey(),saved=localStorage.getItem(key),combo=`${ss.value}_${ls.value}`;
+    document.getElementById('templateInput').value=saved||defaultTemplates[combo]||`Trinity 안내 방송입니다.\n[편명] 및 [목적지]를 입력하세요.`;
+    const unlocked=!document.getElementById('templateInput').readOnly;
+    document.getElementById('master-management-panel').style.display=unlocked?'block':'none';
+    varValues={};
+    stopTTSComplete();
+    renderDynamicInputs();
+}
+function saveTemplate(){
+    const key=getStorageKey(),val=document.getElementById('templateInput').value;
+    localStorage.setItem(key,val);
+    saveTemplateToFirebase(key,val);
+    alert('💾 저장되었습니다.');
+    lockTemplate();
+}
+function unlockTemplate(){
+    if(document.getElementById('passwordInput').value===ADMIN_PASSWORD){
+        const ti=document.getElementById('templateInput');
+        ti.readOnly=false;ti.disabled=false;ti.style.background='#fff';
+        document.getElementById('save-control-group').classList.add('show');
+        document.getElementById('master-management-panel').style.display='block';
+        document.getElementById('tuningBlock').style.display='block';
+    } else alert("❌ 비밀번호가 올바르지 않습니다.");
+}
+function lockTemplate(){
+    const ti=document.getElementById('templateInput');
+    ti.readOnly=true;ti.disabled=true;ti.style.background='';
+    document.getElementById('save-control-group').classList.remove('show');
+    document.getElementById('master-management-panel').style.display='none';
+    document.getElementById('tuningBlock').style.display='none';
+    document.getElementById('passwordInput').value='';
+}
+function resetDefaultTemplate(){if(confirm("기본 양식으로 복원하시겠습니까?")){localStorage.removeItem(getStorageKey());loadTemplate();}}
+
+// ── 공란 변수 추출 ──────────────────────────────────────
+function extractVariables(template){
+    const seen=new Map();
+    [[/\[([^\]]+)\]/g],[/\(([^)]+)\)/g],[/（([^）]+)）/g],[/\{([^}]+)\}/g]].forEach(([re])=>{
+        let m; re.lastIndex=0;
+        while((m=re.exec(template))!==null){
+            const raw=m[1].trim();
+            const canon=raw;
+            if(!seen.has(canon)) seen.set(canon,raw);
         }
-        initSelectBoxes();
-        loadTemplate();
-    };
+    });
+    // 같은 의미의 변수 묶기 (편명, flight 등)
+    const grouped=new Map();
+    seen.forEach((label,key)=>{
+        const base=key.replace(/^(flight|フライト|航班号)$/i,'편명').replace(/^(destination|目的地|目的地)$/i,'목적지');
+        if(!grouped.has(base)) grouped.set(base,label);
+    });
+    return Array.from(grouped.entries()).map(([k,l])=>({key:k,label:l}));
+}
 
-    function loadVoices() {
-        browserVoices = window.speechSynthesis.getVoices();
-        populateVoiceSelectors();
+function renderDynamicInputs(){
+    const template=document.getElementById('templateInput').value;
+    const container=document.getElementById('dynamic-inputs-container');
+    const vars=extractVariables(template);
+    if(vars.length===0){document.getElementById('dynamic-section').style.display='none';return;}
+    document.getElementById('dynamic-section').style.display='block';
+
+    const prev={};
+    vars.forEach(v=>{const el=document.getElementById('var_'+v.key);prev[v.key]=el?el.value:(varValues[v.key]?.ko||'');});
+
+    container.innerHTML=vars.map(v=>`
+        <div class="dyn-grp">
+            <label>${getVarIcon(v.key)}${v.label}</label>
+            <input type="text" id="var_${v.key}" value="${prev[v.key]||''}" placeholder="${v.label} 입력" oninput="onVarInput('${v.key}')">
+        </div>`).join('');
+    composeFinalScript();
+}
+
+function getVarIcon(k){ if(k.includes('편명')||k.toLowerCase().includes('flight')) return '✈️ '; if(k.includes('목적지')||k.toLowerCase().includes('dest')) return '📍 '; return '📝 '; }
+
+function onVarInput(key){
+    if(translateTimer) clearTimeout(translateTimer);
+    translateTimer=setTimeout(()=>autoTranslateVar(key),700);
+    composeFinalScript();
+}
+
+async function autoTranslateVar(key){
+    const el=document.getElementById('var_'+key);
+    if(!el) return;
+    const koVal=el.value.trim();
+    if(!koVal) return;
+
+    // 편명 → 숫자 변환만
+    if(key.includes('편명')||key.toLowerCase().includes('flight')){
+        varValues[key]={ko:expandFlight(koVal,'ko'),en:expandFlight(koVal,'en'),ja:expandFlight(koVal,'ja'),zh:expandFlight(koVal,'zh')};
+        composeFinalScript(); return;
     }
-
-    // 장치 내 탑재된 일본어/한국어 성우 목록을 드롭다운에 채워넣는 로직
-    function populateVoiceSelectors() {
-        const jaSelect = document.getElementById('voiceSelectJA');
-        const koSelect = document.getElementById('voiceSelectKO');
-        if (!jaSelect || browserVoices.length === 0) return;
-
-        const currentJaSaved = localStorage.getItem('tway_saved_voice_ja');
-        const currentKoSaved = localStorage.getItem('tway_saved_voice_ko');
-
-        jaSelect.innerHTML = "";
-        koSelect.innerHTML = "";
-
-        browserVoices.forEach(voice => {
-            if (voice.lang.startsWith('ja')) {
-                const opt = document.createElement('option');
-                opt.value = voice.name;
-                opt.text = `${voice.name} (${voice.lang})`;
-                if (voice.name === currentJaSaved) opt.selected = true;
-                jaSelect.appendChild(opt);
-            }
-            if (voice.lang.startsWith('ko')) {
-                const opt = document.createElement('option');
-                opt.value = voice.name;
-                opt.text = `${voice.name} (${voice.lang})`;
-                if (voice.name === currentKoSaved) opt.selected = true;
-                koSelect.appendChild(opt);
-            }
-        });
+    // 사전 우선
+    if(translationDic[koVal]){
+        varValues[key]={ko:koVal,...translationDic[koVal]};
+        composeFinalScript(); return;
     }
+    // Google Translate
+    document.getElementById('translatingBadge').style.display='inline-block';
+    try {
+        const [en,ja,zh]=await Promise.all([gTranslate(koVal,'en'),gTranslate(koVal,'ja'),gTranslate(koVal,'zh')]);
+        varValues[key]={ko:koVal,en,ja,zh};
+    } catch(e){ varValues[key]={ko:koVal,en:koVal,ja:koVal,zh:koVal}; }
+    document.getElementById('translatingBadge').style.display='none';
+    composeFinalScript();
+}
 
-    function saveSelectedVoices() {
-        localStorage.setItem('tway_saved_voice_ja', document.getElementById('voiceSelectJA').value);
-        localStorage.setItem('tway_saved_voice_ko', document.getElementById('voiceSelectKO').value);
-    }
+async function gTranslate(text,target){
+    const resp=await fetch(`https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_TTS_KEY}`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({q:text,source:'ko',target,format:'text'})
+    });
+    const data=await resp.json();
+    return data?.data?.translations?.[0]?.translatedText||text;
+}
 
-    function initSelectBoxes() {
-        if (!localStorage.getItem('tw_master_status')) {
-            localStorage.setItem('tw_master_status', JSON.stringify(initialStatusList));
-        }
-        if (!localStorage.getItem('tw_master_lang')) {
-            localStorage.setItem('tw_master_lang', JSON.stringify(initialLangList));
-        }
-        renderSelectOptions();
-    }
+function expandFlight(f,lang){
+    const ko={'0':'영','1':'일','2':'이','3':'삼','4':'사','5':'오','6':'육','7':'칠','8':'팔','9':'구'};
+    const ja={'0':'ゼロ','1':'いち','2':'に','3':'さん','4':'よん','5':'ご','6':'ろく','7':'なな','8':'はち','9':'きゅう'};
+    const zh={'0':'零','1':'一','2':'二','3':'三','4':'四','5':'五','6':'六','7':'七','8':'八','9':'九'};
+    return f.split('').map(c=>{
+        if(/[0-9]/.test(c)){if(lang==='ko')return ko[c];if(lang==='ja')return ja[c];if(lang==='zh')return zh[c];}
+        return c;
+    }).join(' ');
+}
 
-    function renderSelectOptions() {
-        const statusSelect = document.getElementById('status');
-        const langSelect = document.getElementById('language');
-        
-        const currentStatusVal = statusSelect.value;
-        const currentLangVal = langSelect.value;
+function composeFinalScript(){
+    let t=document.getElementById('templateInput').value;
+    const vars=extractVariables(t);
+    vars.forEach(v=>{
+        const vals=varValues[v.key];
+        const el=document.getElementById('var_'+v.key);
+        const ko=vals?vals.ko:(el?el.value:'___');
+        const en=vals?vals.en:ko;
+        const ja=vals?vals.ja:ko;
+        const zh=vals?vals.zh:ko;
+        // 모든 브래킷 형태 치환
+        t=t.replace(new RegExp(`\\[${escRe(v.key)}\\]`,'g'),ko);
+        t=t.replace(new RegExp(`\\(${escRe(v.key)}\\)`,'g'),en);
+        t=t.replace(new RegExp(`（${escRe(v.key)}）`,'g'),ja);
+        t=t.replace(new RegExp(`\\{${escRe(v.key)}\\}`,'g'),zh);
+    });
+    document.getElementById('scriptPreview').innerText=t;
+}
 
-        const statusList = JSON.parse(localStorage.getItem('tw_master_status'));
-        const langList = JSON.parse(localStorage.getItem('tw_master_lang'));
+function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 
-        statusSelect.innerHTML = "";
-        statusList.forEach(item => {
-            const opt = document.createElement('option');
-            opt.value = item.id; opt.text = item.name;
-            statusSelect.appendChild(opt);
-        });
+// ── Google Cloud TTS ─────────────────────────────────
+function playTTS(){ stopTTSComplete(); playGoogleTTS(); }
 
-        langSelect.innerHTML = "";
-        langList.forEach(item => {
-            const opt = document.createElement('option');
-            opt.value = item.id; opt.text = item.name;
-            langSelect.appendChild(opt);
-        });
+async function playGoogleTTS(){
+    const fullText=document.getElementById('scriptPreview').innerText;
+    speechParts=buildSpeechParts(fullText);
+    if(speechParts.length===0) return;
+    const btn=document.getElementById('pauseBtn');
+    btn.innerText='⏳ 생성 중...'; btn.disabled=true;
+    try {
+        const results=await Promise.all(speechParts.map(item=>fetchGoogleAudio(item)));
+        speechParts.forEach((item,i)=>{item.audioUrl=results[i];});
+    } catch(e){ alert('Google TTS 오류: '+e.message); btn.disabled=false; resetPauseButton(); return; }
+    btn.disabled=false; resetPauseButton();
+    currentSentenceIndex=0; isPaused=false;
+    playGoogleQueue();
+}
 
-        if (currentStatusVal && statusSelect.querySelector(`option[value="${currentStatusVal}"]`)) {
-            statusSelect.value = currentStatusVal;
-        }
-        if (currentLangVal && langSelect.querySelector(`option[value="${currentLangVal}"]`)) {
-            langSelect.value = currentLangVal;
-        }
-    }
+async function fetchGoogleAudio(item){
+    const voice=GOOGLE_VOICES[item.lang]||GOOGLE_VOICES['ko-KR'];
+    const rate=item.lang==='ja-JP'?parseFloat(document.getElementById('rateJA').value):
+               item.lang==='ko-KR'?parseFloat(document.getElementById('rateKO').value):
+               parseFloat(document.getElementById('rateEN').value);
+    const pitch=item.lang==='ja-JP'?parseFloat(document.getElementById('pitchJA').value):
+                item.lang==='ko-KR'?parseFloat(document.getElementById('pitchKO').value):
+                parseFloat(document.getElementById('pitchEN').value);
+    const resp=await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_TTS_KEY}`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({input:{text:item.text},voice,audioConfig:{audioEncoding:'MP3',speakingRate:rate,pitch}})
+    });
+    if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||resp.statusText);}
+    const data=await resp.json();
+    const bin=atob(data.audioContent),bytes=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+    return URL.createObjectURL(new Blob([bytes],{type:'audio/mp3'}));
+}
 
-    function addStatusItem() {
-        const name = document.getElementById('newStatusInput').value.trim();
-        if (!name) return alert("이름을 입력하세요.");
-        const list = JSON.parse(localStorage.getItem('tw_master_status'));
-        const newId = "status_" + Date.now();
-        list.push({ id: newId, name: name });
-        localStorage.setItem('tw_master_status', JSON.stringify(list));
-        document.getElementById('newStatusInput').value = "";
-        renderSelectOptions();
-        document.getElementById('status').value = newId;
-        loadTemplate();
-    }
+function playGoogleQueue(){
+    if(isPaused||currentSentenceIndex>=speechParts.length){if(currentSentenceIndex>=speechParts.length)resetPauseButton();return;}
+    const item=speechParts[currentSentenceIndex];
+    const audio=new Audio(item.audioUrl);
+    window._currentAudio=audio;
+    audio.onended=function(){currentSentenceIndex++;setTimeout(playGoogleQueue,item.pauseAfter);};
+    audio.onerror=function(){currentSentenceIndex++;playGoogleQueue();};
+    audio.play();
+}
 
-    function renameStatusItem() {
-        const select = document.getElementById('status');
-        const targetId = select.value;
-        const newName = document.getElementById('renameStatusInput').value.trim();
-        if (!newName) return alert("이름을 입력하세요.");
-        const list = JSON.parse(localStorage.getItem('tw_master_status'));
-        const item = list.find(i => i.id === targetId);
-        if (item) item.name = newName;
-        localStorage.setItem('tw_master_status', JSON.stringify(list));
-        renderSelectOptions();
-        loadTemplate();
-    }
-
-    function deleteStatusItem() {
-        const select = document.getElementById('status');
-        const targetId = select.value;
-        const list = JSON.parse(localStorage.getItem('tw_master_status'));
-        if (list.length <= 1) return alert("최소 한 개는 있어야 합니다.");
-        if (!confirm("정말 삭제하시겠습니까?")) return;
-        const newList = list.filter(i => i.id !== targetId);
-        localStorage.setItem('tw_master_status', JSON.stringify(newList));
-        renderSelectOptions();
-        loadTemplate();
-    }
-
-    function addLangItem() {
-        const name = document.getElementById('newLangInput').value.trim();
-        if (!name) return alert("이름을 입력하세요.");
-        const list = JSON.parse(localStorage.getItem('tw_master_lang'));
-        const newId = "lang_" + Date.now();
-        list.push({ id: newId, name: name });
-        localStorage.setItem('tw_master_lang', JSON.stringify(list));
-        document.getElementById('newLangInput').value = "";
-        renderSelectOptions();
-        document.getElementById('language').value = newId;
-        loadTemplate();
-    }
-
-    function renameLangItem() {
-        const select = document.getElementById('language');
-        const targetId = select.value;
-        const newName = document.getElementById('renameLangInput').value.trim();
-        if (!newName) return alert("이름을 입력하세요.");
-        const list = JSON.parse(localStorage.getItem('tw_master_lang'));
-        const item = list.find(i => i.id === targetId);
-        if (item) item.name = newName;
-        localStorage.setItem('tw_master_lang', JSON.stringify(list));
-        renderSelectOptions();
-        loadTemplate();
-    }
-
-    function deleteLangItem() {
-        const select = document.getElementById('language');
-        const targetId = select.value;
-        const list = JSON.parse(localStorage.getItem('tw_master_lang'));
-        if (list.length <= 1) return alert("최소 한 개는 있어야 합니다.");
-        if (!confirm("정말 삭제하시겠습니까?")) return;
-        const newList = list.filter(i => i.id !== targetId);
-        localStorage.setItem('tw_master_lang', JSON.stringify(newList));
-        renderSelectOptions();
-        loadTemplate();
-    }
-
-    function getStorageKey() {
-        return `tway_final_${document.getElementById('status').value}_${document.getElementById('language').value}`;
-    }
-
-    function loadTemplate() {
-        const statusSelect = document.getElementById('status');
-        const langSelect = document.getElementById('language');
-        if(!statusSelect.options.length || !langSelect.options.length) return;
-
-        const currentStatusName = statusSelect.options[statusSelect.selectedIndex].text;
-        const currentLangName = langSelect.options[langSelect.selectedIndex].text;
-        
-        document.getElementById('templateLabel').innerText = `2. 방송문 [ ${currentStatusName} > ${currentLangName} ]`;
-        document.getElementById('renameStatusInput').value = currentStatusName;
-        document.getElementById('renameLangInput').value = currentLangName;
-
-        const key = getStorageKey();
-        const savedData = localStorage.getItem(key);
-        
-        if (savedData) {
-            document.getElementById('templateInput').value = savedData;
+function buildSpeechParts(fullText){
+    const parts=[];
+    fullText.split('\n').forEach(line=>{
+        if(!line.trim()) return;
+        const isJa=/[ぁ-んァ-ン]/.test(line);
+        if(isJa){
+            const segs=line.split(/([。！？])/);let acc="";
+            segs.forEach(p=>{if(!p)return;if(/^[。！？]$/.test(p)){if(acc.trim()){parts.push({text:acc.trim()+p,lang:'ja-JP',pauseAfter:900});acc="";}}else acc+=p;});
+            if(acc.trim()) parts.push({text:acc.trim(),lang:'ja-JP',pauseAfter:1200});
         } else {
-            const combo = `${statusSelect.value}_${langSelect.value}`;
-            document.getElementById('templateInput').value = defaultTemplates[combo] || `더 멋진 변화의 시작, 티웨이항공 안내 방송입니다.\n[편명] 및 [목적지] 내용을 입력하세요.`;
+            const segs=line.split(/([.!?,，])/);let acc="";
+            segs.forEach(p=>{
+                if(!p)return;
+                if(/^[.!?,，]$/.test(p)){
+                    if(acc.trim().length>1){const text=acc.trim()+(p===','||p==='，'?'':p);parts.push({text,lang:detectLang(text),pauseAfter:p===','||p==='，'?350:800});acc="";}
+                } else acc+=p;
+            });
+            if(acc.trim().length>1) parts.push({text:acc.trim(),lang:detectLang(acc),pauseAfter:1200});
         }
-        
-        const isUnlocked = !document.getElementById('templateInput').readOnly;
-        document.getElementById('master-management-panel').style.display = isUnlocked ? "block" : "none";
+    });
+    return parts;
+}
 
-        stopTTSComplete();
-        renderDynamicInputs();
-    }
+function detectLang(t){
+    if(/[가-힣]/.test(t)) return 'ko-KR';
+    if(/[ぁ-んァ-ン]/.test(t)) return 'ja-JP';
+    if(/[一-龥]/.test(t)&&!/[가-힣]/.test(t)) return 'zh-CN';
+    if(/[A-Za-z]/.test(t)) return 'en-US';
+    return 'ko-KR';
+}
 
-    function saveTemplate() {
-        localStorage.setItem(getStorageKey(), document.getElementById('templateInput').value);
-        alert(`💾 저장되었습니다.`);
-        lockTemplate();
-    }
-
-    function unlockTemplate() {
-        if(document.getElementById('passwordInput').value === ADMIN_PASSWORD) {
-            const ti = document.getElementById('templateInput');
-            ti.readOnly = false; ti.disabled = false;
-            ti.style.backgroundColor = "#ffffff";
-            document.getElementById('save-control-group').style.display = "flex";
-            document.getElementById('master-management-panel').style.display = "block";
-            document.getElementById('tuningBlock').style.display = "block";
-        } else {
-            alert("❌ 비밀번호가 올바르지 않습니다.");
-        }
-    }
-
-    function lockTemplate() {
-        const ti = document.getElementById('templateInput');
-        ti.readOnly = true; ti.disabled = true;
-        ti.style.backgroundColor = "#f1f5f9";
-        document.getElementById('save-control-group').style.display = "none";
-        document.getElementById('master-management-panel').style.display = "none";
-        document.getElementById('tuningBlock').style.display = "none";
-        document.getElementById('passwordInput').value = "";
-    }
-
-    function resetDefaultTemplate() {
-        if(confirm("기본 양식으로 복원하시겠습니까?")) {
-            localStorage.removeItem(getStorageKey());
-            loadTemplate();
-        }
-    }
-
-    function renderDynamicInputs() {
-        const container = document.getElementById('dynamic-inputs-container');
-        const oldFlight = document.getElementById('flight_val')?.value || 'TW123';
-        const oldDest = document.getElementById('dest_val')?.value || '오사카';
-
-        container.innerHTML = `
-            <div class="dynamic-group">
-                <label>✈️ 비행 편명</label>
-                <input type="text" id="flight_val" value="${oldFlight}" oninput="composeFinalScript()">
-            </div>
-            <div class="dynamic-group">
-                <label>📍 목적 도시</label>
-                <input type="text" id="dest_val" value="${oldDest}" oninput="composeFinalScript()">
-            </div>
-        `;
-        document.getElementById('dynamic-section').style.display = 'block';
-        composeFinalScript();
-    }
-
-    // 편명 숫자를 한 글자씩 읽히도록 변환
-    // 예: TW319 → 한국어: "TW 삼 일 구", 영어: "T W 3 1 9", 일본어: "TW 三 一 九"
-    function expandFlightNumber(flight, lang) {
-        const koDigits = {'0':'영','1':'일','2':'이','3':'삼','4':'사','5':'오','6':'육','7':'칠','8':'팔','9':'구'};
-        const jaDigits = {'0':'ゼロ','1':'いち','2':'に','3':'さん','4':'よん','5':'ご','6':'ろく','7':'なな','8':'はち','9':'きゅう'};
-        const zhDigits = {'0':'零','1':'一','2':'二','3':'三','4':'四','5':'五','6':'六','7':'七','8':'八','9':'九'};
-
-        return flight.split('').map(ch => {
-            if (/[0-9]/.test(ch)) {
-                if (lang === 'ko') return koDigits[ch];
-                if (lang === 'ja') return jaDigits[ch];
-                if (lang === 'zh') return zhDigits[ch];
-                return ch; // 영어는 숫자 그대로 스페이스로 분리해서 TTS가 각각 읽음
-            }
-            return ch;
-        }).join(lang === 'en' ? ' ' : ' ');
-    }
-
-    function composeFinalScript() {
-        let template = document.getElementById('templateInput').value;
-        const flight = document.getElementById('flight_val').value || '___';
-        const destKo = document.getElementById('dest_val').value || '___';
-
-        let destEn = destKo, destJa = destKo, destZh = destKo;
-        if (translationDic[destKo]) {
-            destEn = translationDic[destKo].en;
-            destJa = translationDic[destKo].ja;
-            destZh = translationDic[destKo].zh;
-        }
-
-        // 편명 숫자를 언어별로 한 글자씩 읽히도록 변환
-        const flightKo = expandFlightNumber(flight, 'ko');
-        const flightEn = expandFlightNumber(flight, 'en');
-        const flightJa = expandFlightNumber(flight, 'ja');
-        const flightZh = expandFlightNumber(flight, 'zh');
-
-        template = template.replace(/\[편명\]/g, flightKo).replace(/\[목적지\]/g, destKo);
-        template = template.replace(/\(편명\)/g, flightEn).replace(/\(목적지\)/g, destEn);
-        template = template.replace(/（편명）/g, flightJa).replace(/（목적지）/g, destJa);
-        template = template.replace(/\{편명\}/g, flightZh).replace(/\{목적지\}/g, destZh);
-
-        document.getElementById('scriptPreview').innerText = template;
-    }
-
-    const GOOGLE_TTS_KEY = 'AIzaSyDPwwNLJSnPoADJn41CuZevx7j6-KWRwiQ';
-
-    // 언어별 Google TTS 음성 설정 (WaveNet = 고품질)
-    const GOOGLE_VOICES = {
-        'ko-KR': { languageCode: 'ko-KR', name: 'ko-KR-Wavenet-A', ssmlGender: 'FEMALE' },
-        'ja-JP': { languageCode: 'ja-JP', name: 'ja-JP-Wavenet-B', ssmlGender: 'FEMALE' },
-        'en-US': { languageCode: 'en-US', name: 'en-US-Wavenet-F', ssmlGender: 'FEMALE' },
-        'zh-CN': { languageCode: 'cmn-CN', name: 'cmn-CN-Wavenet-A', ssmlGender: 'FEMALE' },
-    };
-
-    function playTTS() {
-        stopTTSComplete();
-        playGoogleTTS();
-    }
-
-    // ── Google Cloud TTS ─────────────────────────────────
-    async function playGoogleTTS() {
-        const fullText = document.getElementById('scriptPreview').innerText;
-        speechParts = buildSpeechParts(fullText);
-        if (speechParts.length === 0) return;
-
-        document.getElementById('pauseBtn').innerText = '⏳ 음성 생성 중...';
-        document.getElementById('pauseBtn').disabled = true;
-
-        // 모든 파트 병렬로 Google TTS 호출
-        try {
-            const results = await Promise.all(speechParts.map(item => fetchGoogleAudio(item)));
-            speechParts.forEach((item, i) => { item.audioUrl = results[i]; });
-        } catch(e) {
-            alert('Google TTS 오류: ' + e.message + '\n브라우저 TTS로 대체합니다.');
-            document.getElementById('pauseBtn').disabled = false;
-            resetPauseButton();
-            playBrowserFallback();
-            return;
-        }
-
-        document.getElementById('pauseBtn').disabled = false;
-        resetPauseButton();
-        currentSentenceIndex = 0;
-        isPaused = false;
+function togglePause(){
+    const btn=document.getElementById('pauseBtn');
+    if(!isPaused){
+        isPaused=true;if(window._currentAudio)window._currentAudio.pause();
+        btn.innerText="▶ 방송 재개";btn.style.background='var(--green)';
+    } else {
+        isPaused=false;btn.innerText="⏸ 일시 정지";btn.style.background='';
         playGoogleQueue();
     }
-
-    async function fetchGoogleAudio(item) {
-        const voice = GOOGLE_VOICES[item.lang] || GOOGLE_VOICES['ko-KR'];
-        const rate = item.lang === 'ja-JP' ? parseFloat(document.getElementById('rateJA').value) :
-                     item.lang === 'ko-KR' ? parseFloat(document.getElementById('rateKO').value) :
-                                             parseFloat(document.getElementById('rateEN').value);
-        const pitch = item.lang === 'ja-JP' ? parseFloat(document.getElementById('pitchJA').value) :
-                      item.lang === 'ko-KR' ? parseFloat(document.getElementById('pitchKO').value) :
-                                              parseFloat(document.getElementById('pitchEN').value);
-
-        const resp = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_TTS_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                input: { text: item.text },
-                voice: voice,
-                audioConfig: {
-                    audioEncoding: 'MP3',
-                    speakingRate: rate,
-                    pitch: (pitch - 1.0) * 20  // Google pitch는 -20~20 범위
-                }
-            })
-        });
-        if (!resp.ok) {
-            const err = await resp.json();
-            throw new Error(err.error?.message || resp.statusText);
-        }
-        const data = await resp.json();
-        const binary = atob(data.audioContent);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        const blob = new Blob([bytes], { type: 'audio/mp3' });
-        return URL.createObjectURL(blob);
-    }
-
-    function playGoogleQueue() {
-        if (isPaused || currentSentenceIndex >= speechParts.length) {
-            if (currentSentenceIndex >= speechParts.length) resetPauseButton();
-            return;
-        }
-        const item = speechParts[currentSentenceIndex];
-        const audio = new Audio(item.audioUrl);
-        window._currentAudio = audio;
-        audio.onended = function() {
-            currentSentenceIndex++;
-            setTimeout(playGoogleQueue, item.pauseAfter);
-        };
-        audio.onerror = function() {
-            currentSentenceIndex++;
-            playGoogleQueue();
-        };
-        audio.play();
-    }
-
-    // ── 공통 문장 분리 ────────────────────────────────────
-    function buildSpeechParts(fullText) {
-        const parts = [];
-        fullText.split('\n').forEach(line => {
-            if (!line.trim()) return;
-            const isJaLine = /[ぁ-んァ-ン]/.test(line);
-            if (isJaLine) {
-                const segs = line.split(/([。！？])/);
-                let accum = "";
-                segs.forEach(p => {
-                    if (!p) return;
-                    if (/^[。！？]$/.test(p)) {
-                        if (accum.trim().length > 0) { parts.push({ text: accum.trim() + p, lang: 'ja-JP', pauseAfter: 900 }); accum = ""; }
-                    } else accum += p;
-                });
-                if (accum.trim().length > 0) parts.push({ text: accum.trim(), lang: 'ja-JP', pauseAfter: 1200 });
-            } else {
-                const segs = line.split(/([.!?,，])/);
-                let accum = "";
-                segs.forEach(p => {
-                    if (!p) return;
-                    if (/^[.!?,，]$/.test(p)) {
-                        if (accum.trim().length > 1) {
-                            const text = accum.trim() + (p === ',' || p === '，' ? '' : p);
-                            parts.push({ text, lang: detectLanguageAuto(text), pauseAfter: p === ',' || p === '，' ? 350 : 800 });
-                            accum = "";
-                        }
-                    } else accum += p;
-                });
-                if (accum.trim().length > 1) parts.push({ text: accum.trim(), lang: detectLanguageAuto(accum), pauseAfter: 1200 });
-            }
-        });
-        return parts;
-    }
-
-    // ── 브라우저 TTS (fallback) ───────────────────────────
-    function playBrowserFallback() {
-        const fullText = document.getElementById('scriptPreview').innerText;
-        speechParts = buildSpeechParts(fullText);
-        if (speechParts.length === 0) return;
-        currentSentenceIndex = 0;
-        isPaused = false;
-        if (window._ttsKeepAlive) clearInterval(window._ttsKeepAlive);
-        window._ttsKeepAlive = setInterval(() => {
-            if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-        }, 10000);
-        executeQueue();
-    }
-
-    function executeQueue() {
-        if (isPaused) return;
-        if (currentSentenceIndex >= speechParts.length) { resetPauseButton(); return; }
-        const item = speechParts[currentSentenceIndex];
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(item.text);
-        utterance.lang = item.lang;
-        if (item.lang === 'ja-JP') { utterance.rate = parseFloat(document.getElementById('rateJA').value); utterance.pitch = parseFloat(document.getElementById('pitchJA').value); }
-        else if (item.lang === 'ko-KR') { utterance.rate = parseFloat(document.getElementById('rateKO').value); utterance.pitch = parseFloat(document.getElementById('pitchKO').value); }
-        else { utterance.rate = parseFloat(document.getElementById('rateEN').value); utterance.pitch = parseFloat(document.getElementById('pitchEN').value); }
-        const selJA = document.getElementById('voiceSelectJA').value;
-        const selKO = document.getElementById('voiceSelectKO').value;
-        let targetVoice = null;
-        if (item.lang === 'ko-KR' && selKO) targetVoice = browserVoices.find(v => v.name === selKO);
-        else if (item.lang === 'ja-JP' && selJA) targetVoice = browserVoices.find(v => v.name === selJA);
-        else targetVoice = browserVoices.find(v => v.lang.startsWith(item.lang.split('-')[0]));
-        if (targetVoice) utterance.voice = targetVoice;
-        utterance.onend = function() { currentSentenceIndex++; if (!isPaused && currentSentenceIndex < speechParts.length) setTimeout(executeQueue, item.pauseAfter); else if (currentSentenceIndex >= speechParts.length) resetPauseButton(); };
-        utterance.onerror = function() { if (!isPaused) { currentSentenceIndex++; executeQueue(); } };
-        window.speechSynthesis.speak(utterance);
-    }
-
-    function detectLanguageAuto(text) {
-        if (/[가-힣]/.test(text)) return 'ko-KR';
-        if (/[ぁ-んァ-ン]/.test(text)) return 'ja-JP';
-        if (/[一-龥]/.test(text) && !/[가-힣]/.test(text)) return 'zh-CN';
-        if (/[A-Za-z]/.test(text)) return 'en-US';
-        return 'ko-KR';
-    }
-
-    function togglePause() {
-        const btn = document.getElementById('pauseBtn');
-        if (!isPaused) {
-            isPaused = true;
-            window.speechSynthesis.cancel();
-            if (window._currentAudio) window._currentAudio.pause();
-            btn.innerText = "▶️ 방송 재개";
-            btn.style.backgroundColor = "#10b981";
-        } else {
-            isPaused = false;
-            btn.innerText = "⏸️ 일시 정지";
-            btn.style.backgroundColor = "#f59e0b";
-            if (window._currentAudio && speechParts[currentSentenceIndex]?.audioUrl) {
-                playGoogleQueue();
-            } else {
-                executeQueue();
-            }
-        }
-    }
-
-    function stopTTSComplete() {
-        window.speechSynthesis.cancel();
-        if (window._currentAudio) { window._currentAudio.pause(); window._currentAudio = null; }
-        if (window._ttsKeepAlive) { clearInterval(window._ttsKeepAlive); window._ttsKeepAlive = null; }
-        isPaused = false;
-        currentSentenceIndex = 0;
-        resetPauseButton();
-    }
-
-    function resetPauseButton() {
-        isPaused = false;
-        const btn = document.getElementById('pauseBtn');
-        btn.innerText = "⏸️ 일시 정지";
-        btn.style.backgroundColor = "#f59e0b";
-        btn.disabled = false;
-    }
-
+}
+function stopTTSComplete(){
+    if(window._currentAudio){window._currentAudio.pause();window._currentAudio=null;}
+    window.speechSynthesis?.cancel();
+    isPaused=false;currentSentenceIndex=0;resetPauseButton();
+}
+function resetPauseButton(){
+    isPaused=false;
+    const btn=document.getElementById('pauseBtn');
+    btn.innerText="⏸ 일시 정지";btn.style.background='';btn.disabled=false;
+}
 </script>
 
-<!-- Firebase Realtime Database (compat SDK) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyCE86IpDajP7IsRItC7tc3pnjAZSfhNiI4",
-        authDomain: "voice-d6845.firebaseapp.com",
-        projectId: "voice-d6845",
-        storageBucket: "voice-d6845.firebasestorage.app",
-        messagingSenderId: "979498037744",
-        appId: "1:979498037744:web:19857cd9406dbf914b6d35",
-        measurementId: "G-FV16RLG321",
-        databaseURL: "https://voice-d6845-default-rtdb.firebaseio.com"
-    };
+firebase.initializeApp({
+    apiKey:"AIzaSyCE86IpDajP7IsRItC7tc3pnjAZSfhNiI4",
+    authDomain:"voice-d6845.firebaseapp.com",
+    projectId:"voice-d6845",
+    storageBucket:"voice-d6845.firebasestorage.app",
+    messagingSenderId:"979498037744",
+    appId:"1:979498037744:web:19857cd9406dbf914b6d35",
+    databaseURL:"https://voice-d6845-default-rtdb.firebaseio.com"
+});
+const db=firebase.database();
+const SLIDER_IDS=['rateKO','pitchKO','rateJA','pitchJA','rateEN','pitchEN'];
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+function saveSliderValues(){const v={};SLIDER_IDS.forEach(id=>{v[id]=document.getElementById(id).value;});localStorage.setItem('tway_slider_vals',JSON.stringify(v));}
+function loadSliderValues(){const s=localStorage.getItem('tway_slider_vals');if(!s)return;const v=JSON.parse(s);SLIDER_IDS.forEach(id=>{if(v[id]!==undefined){document.getElementById(id).value=v[id];document.getElementById(id+'_label').textContent=v[id];}});}
+function subscribeFirebaseTemplates(){db.ref('templates').on('value',snap=>{const d=snap.val();if(!d)return;Object.keys(d).forEach(k=>localStorage.setItem('tway_final_'+k,d[k]));loadTemplate();});}
+function subscribeFirebaseTuning(){db.ref('tuning').on('value',snap=>{const d=snap.val();if(!d)return;SLIDER_IDS.forEach(id=>{if(d[id]!==undefined){document.getElementById(id).value=d[id];document.getElementById(id+'_label').textContent=parseFloat(d[id]).toFixed(2);}});localStorage.setItem('tway_slider_vals',JSON.stringify(d));});}
+function saveTemplateToFirebase(key,value){db.ref('templates/'+key.replace('tway_final_','')).set(value);}
+function saveTuningToFirebase(){const v={};SLIDER_IDS.forEach(id=>{v[id]=parseFloat(document.getElementById(id).value);});db.ref('tuning').set(v);}
 
-    const SLIDER_IDS = ['rateJA','pitchJA','rateKO','pitchKO','rateEN','pitchEN'];
-
-    // ── 슬라이더 localStorage 저장 ───────────────────────
-    function saveSliderValues() {
-        const vals = {};
-        SLIDER_IDS.forEach(id => { vals[id] = document.getElementById(id).value; });
-        localStorage.setItem('tway_slider_vals', JSON.stringify(vals));
-    }
-
-    function loadSliderValues() {
-        const saved = localStorage.getItem('tway_slider_vals');
-        if (!saved) return;
-        const vals = JSON.parse(saved);
-        SLIDER_IDS.forEach(id => {
-            if (vals[id] !== undefined) {
-                document.getElementById(id).value = vals[id];
-                document.getElementById(id + '_label').textContent = vals[id];
-            }
-        });
-    }
-
-    // ── Firebase → 템플릿 실시간 수신 ────────────────────
-    function subscribeFirebaseTemplates() {
-        db.ref('templates').on('value', snapshot => {
-            const data = snapshot.val();
-            if (!data) return;
-            Object.keys(data).forEach(key => {
-                localStorage.setItem('tway_final_' + key, data[key]);
-            });
-            loadTemplate();
-        });
-    }
-
-    // ── Firebase → 슬라이더 실시간 수신 ─────────────────
-    function subscribeFirebaseTuning() {
-        db.ref('tuning').on('value', snapshot => {
-            const data = snapshot.val();
-            if (!data) return;
-            SLIDER_IDS.forEach(id => {
-                if (data[id] !== undefined) {
-                    document.getElementById(id).value = data[id];
-                    document.getElementById(id + '_label').textContent = parseFloat(data[id]).toFixed(2);
-                }
-            });
-            localStorage.setItem('tway_slider_vals', JSON.stringify(data));
-        });
-    }
-
-    // ── Firebase에 템플릿 저장 ───────────────────────────
-    function saveTemplateToFirebase(key, value) {
-        const fbKey = key.replace('tway_final_', '');
-        db.ref('templates/' + fbKey).set(value);
-    }
-
-    // ── Firebase에 슬라이더 값 저장 ──────────────────────
-    function saveTuningToFirebase() {
-        const vals = {};
-        SLIDER_IDS.forEach(id => { vals[id] = parseFloat(document.getElementById(id).value); });
-        db.ref('tuning').set(vals);
-    }
-
-    // ── saveTemplate 오버라이드 → Firebase도 저장 ────────
-    window.saveTemplate = function() {
-        const key = getStorageKey();
-        const val = document.getElementById('templateInput').value;
-        localStorage.setItem(key, val);
-        saveTemplateToFirebase(key, val);
-        alert('💾 저장되었습니다. (Firebase 동기화 완료)');
-        lockTemplate();
-    };
-
-    // ── 페이지 완전 로드 후 초기화 ───────────────────────
-    window.addEventListener('load', function() {
-        // 슬라이더 이벤트 등록
-        SLIDER_IDS.forEach(id => {
-            document.getElementById(id).addEventListener('input', saveSliderValues);
-            document.getElementById(id).addEventListener('change', saveTuningToFirebase);
-        });
-
-        // localStorage 슬라이더 복원 (Firebase 수신 전 기본값으로)
-        loadSliderValues();
-
-        // Firebase 구독 시작 (수신되면 loadTemplate 자동 호출)
-        subscribeFirebaseTemplates();
-        subscribeFirebaseTuning();
+window.addEventListener('load',function(){
+    SLIDER_IDS.forEach(id=>{
+        document.getElementById(id).addEventListener('input',saveSliderValues);
+        document.getElementById(id).addEventListener('change',saveTuningToFirebase);
     });
+    loadSliderValues();
+    subscribeFirebaseTemplates();
+    subscribeFirebaseTuning();
+});
 </script>
-
 </body>
 </html>
