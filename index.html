@@ -698,11 +698,10 @@
         fullText.split('\n').forEach(line => {
             if (!line.trim()) return;
 
-            // 일본어 문장은 読点(、)도 짧게 끊어서 자연스럽게
             const isJaLine = /[ぁ-んァ-ン]/.test(line);
 
             if (isJaLine) {
-                // 일본어: 。！？ 로 분리 + 、 는 pause만 추가
+                // 일본어: 。！？ 로 분리
                 const parts = line.split(/([。！？])/);
                 let accum = "";
                 parts.forEach(part => {
@@ -719,15 +718,16 @@
                 if (accum.trim().length > 0)
                     speechParts.push({ text: accum.trim(), lang: 'ja-JP', pauseAfter: 1200 });
             } else {
-                // 한국어/영어: . ! ? 로 분리
-                const parts = line.split(/([.!?])/);
+                // 한국어/영어: . ! ? 및 쉼표로도 분리 → 짧게 끊어 지직거림 감소
+                const parts = line.split(/([.!?,，])/);
                 let accum = "";
                 parts.forEach(part => {
                     if (!part) return;
-                    if (/^[.!?]$/.test(part)) {
+                    if (/^[.!?,，]$/.test(part)) {
                         if (accum.trim().length > 1) {
-                            const text = accum.trim() + part;
-                            speechParts.push({ text, lang: detectLanguageAuto(text), pauseAfter: 800 });
+                            const text = accum.trim() + (part === ',' || part === '，' ? '' : part);
+                            const pause = (part === ',' || part === '，') ? 350 : 800;
+                            speechParts.push({ text, lang: detectLanguageAuto(text), pauseAfter: pause });
                             accum = "";
                         }
                     } else {
@@ -742,6 +742,13 @@
         if (speechParts.length === 0) return;
         currentSentenceIndex = 0;
         isPaused = false;
+
+        // Chrome 모바일 TTS 버그 방지: 15초마다 resume() 호출
+        if (window._ttsKeepAlive) clearInterval(window._ttsKeepAlive);
+        window._ttsKeepAlive = setInterval(() => {
+            if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+        }, 10000);
+
         executeQueue();
     }
 
@@ -817,6 +824,7 @@
 
     function stopTTSComplete() {
         window.speechSynthesis.cancel();
+        if (window._ttsKeepAlive) { clearInterval(window._ttsKeepAlive); window._ttsKeepAlive = null; }
         isPaused = false;
         currentSentenceIndex = 0;
         resetPauseButton();
