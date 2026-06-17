@@ -141,7 +141,7 @@ const GOOGLE_VOICES = {
     'ko-KR':{ languageCode:'ko-KR', name:'ko-KR-Wavenet-A', ssmlGender:'FEMALE' },
     'ja-JP':{ languageCode:'ja-JP', name:'ja-JP-Wavenet-B', ssmlGender:'FEMALE' },
     'en-US':{ languageCode:'en-US', name:'en-US-Wavenet-F', ssmlGender:'FEMALE' },
-    'zh-CN':{ languageCode:'cmn-TW', name:'cmn-TW-Neural2-A', ssmlGender:'FEMALE' },
+    'zh-CN':{ languageCode:'cmn-CN', name:'cmn-CN-Wavenet-D', ssmlGender:'FEMALE' },
 };
 
 let isPaused=false, currentSentenceIndex=0, speechParts=[];
@@ -394,9 +394,11 @@ async function fetchGoogleAudio(item){
     const voice=GOOGLE_VOICES[item.lang]||GOOGLE_VOICES['ko-KR'];
     const rate=item.lang==='ja-JP'?parseFloat(document.getElementById('rateJA').value):
                item.lang==='ko-KR'?parseFloat(document.getElementById('rateKO').value):
+               item.lang==='zh-CN'?0.95:
                parseFloat(document.getElementById('rateEN').value);
     const pitch=item.lang==='ja-JP'?parseFloat(document.getElementById('pitchJA').value):
                 item.lang==='ko-KR'?parseFloat(document.getElementById('pitchKO').value):
+                item.lang==='zh-CN'?0:
                 parseFloat(document.getElementById('pitchEN').value);
     const resp=await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_TTS_KEY}`,{
         method:'POST',headers:{'Content-Type':'application/json'},
@@ -432,6 +434,10 @@ function buildSpeechParts(fullText){
             const segs=para.replace(/\n/g,'').split(/([。！？])/);let acc="";
             segs.forEach(p=>{if(!p)return;if(/^[。！？]$/.test(p)){if(acc.trim()){parts.push({text:acc.trim()+p,lang:'ja-JP',pauseAfter:900});acc="";}}else acc+=p;});
             if(acc.trim()) parts.push({text:acc.trim(),lang:'ja-JP',pauseAfter:1200});
+        } else if(lang==='zh-CN'){
+            const segs=para.replace(/\n/g,'').split(/([。！？，、])/);let acc="";
+            segs.forEach(p=>{if(!p)return;if(/^[。！？，、]$/.test(p)){if(acc.trim()){parts.push({text:acc.trim()+p,lang:'zh-CN',pauseAfter:p==='，'||p==='、'?350:900});acc="";}}else acc+=p;});
+            if(acc.trim()) parts.push({text:acc.trim(),lang:'zh-CN',pauseAfter:1200});
         } else {
             para.split('\n').forEach(line=>{
                 if(!line.trim()) return;
