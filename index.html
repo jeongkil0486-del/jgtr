@@ -315,6 +315,12 @@ function expandFlight(f,lang){
     const ko={'0':'영','1':'일','2':'이','3':'삼','4':'사','5':'오','6':'육','7':'칠','8':'팔','9':'구'};
     const ja={'0':'ゼロ','1':'いち','2':'に','3':'さん','4':'よん','5':'ご','6':'ろく','7':'なな','8':'はち','9':'きゅう'};
     const zh={'0':'零','1':'一','2':'二','3':'三','4':'四','5':'五','6':'六','7':'七','8':'八','9':'九'};
+    if(lang==='en'){
+        // 알파벳 코드는 붙이고, 숫자만 공백으로 분리 (ex: TW123 → "TW 1 2 3")
+        const alpha=f.replace(/[0-9]/g,'').trim();
+        const digits=f.replace(/[^0-9]/g,'').split('').join(' ');
+        return (alpha+(digits?' '+digits:'')).trim();
+    }
     return f.split('').map(c=>{
         if(/[0-9]/.test(c)){if(lang==='ko')return ko[c];if(lang==='ja')return ja[c];if(lang==='zh')return zh[c];}
         return c;
@@ -465,12 +471,14 @@ function detectLang(t){
 
 // 단락 전체 언어 판별 (영어 단락은 영어 문자 비율로)
 function detectParaLang(t){
-    if(/[가-힣]/.test(t)) return 'ko-KR';
     if(/[ぁ-んァ-ン]/.test(t)) return 'ja-JP';
     if(/[一-龥]/.test(t)) return 'zh-CN';
-    const enChars=(t.match(/[A-Za-z]/g)||[]).length;
-    const total=t.replace(/\s/g,'').length;
-    if(total>0 && enChars/total>0.4) return 'en-US';
+    // 한글을 제거한 뒤 영어 비율로 판별 (편명·목적지 치환값에 한글이 섞여도 영어 단락 오인식 방지)
+    const stripped=t.replace(/[가-힣]+/g,'').trim();
+    const enChars=(stripped.match(/[A-Za-z]/g)||[]).length;
+    const total=stripped.replace(/\s/g,'').length;
+    if(total>0 && enChars/total>0.3) return 'en-US';
+    if(/[가-힣]/.test(t)) return 'ko-KR';
     return 'ko-KR';
 }
 
