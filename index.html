@@ -387,9 +387,11 @@ async function playGoogleTTS(){
     if(speechParts.length===0) return;
     const btn=document.getElementById('pauseBtn');
     btn.innerText='⏳ 생성 중...'; btn.disabled=true;
+    // iOS Safari: Promise.all 병렬 fetch 시 일부 오디오 차단 문제 → 순차 fetch
     try {
-        const results=await Promise.all(speechParts.map(item=>fetchGoogleAudio(item)));
-        speechParts.forEach((item,i)=>{item.audioUrl=results[i];});
+        for(let i=0;i<speechParts.length;i++){
+            speechParts[i].audioUrl=await fetchGoogleAudio(speechParts[i]);
+        }
     } catch(e){ alert('Google TTS 오류: '+e.message); btn.disabled=false; resetPauseButton(); return; }
     btn.disabled=false; resetPauseButton();
     currentSentenceIndex=0; isPaused=false;
