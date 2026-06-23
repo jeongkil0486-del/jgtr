@@ -379,14 +379,11 @@ function detectOrigLang(line){
 function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 
 // ── Google Cloud TTS ─────────────────────────────────
-// iOS Safari 대응: fetch는 미리 완료, 재생은 onended 콜백 체인으로 연결
-// (async/await 없이 순수 콜백 방식 → iOS user gesture 컨텍스트 유지)
-
 function playTTS(){ stopTTSComplete(); playGoogleTTS(); }
 
 async function playGoogleTTS(){
-    const fullText=document.getElementById('scriptPreview').innerText;
-    speechParts=buildSpeechParts(fullText);
+    // 미리보기 텍스트 대신 원본 템플릿 기준으로 speechParts 생성 → 언어 판별 정확도 보장
+    speechParts=buildSpeechParts();
     if(speechParts.length===0) return;
     const btn=document.getElementById('pauseBtn');
     btn.innerText='⏳ 생성 중...'; btn.disabled=true;
@@ -449,18 +446,26 @@ function playNext(){
 // playGoogleQueue는 일시정지 재개용으로만 사용
 function playGoogleQueue(){ playNext(); }
 
-function buildSpeechParts(fullText){
+function buildSpeechParts(){
     const parts=[];
-    // 줄 단위로 쪼갠 뒤 언어가 같은 줄끼리 묶어서 단락 구성
-    const lines=fullText.split(/\n/).map(l=>l.trim()).filter(l=>l);
+    // scriptPreview 대신 templateInput 원본을 기준으로 언어 판별
+    // → composeFinalScript의 join('\n') 으로 빈줄이 사라져도 언어 판별 정확도 유지
+    const templateLines=document.getElementById('templateInput').value.split('\n');
+    const previewLines=document.getElementById('scriptPreview').innerText.split('\n');
+
+    // 원본 줄 언어 + 미리보기 줄 텍스트를 1:1 매핑
+    const linePairs=templateLines.map((tLine,i)=>({
+        lang: detectOrigLang(tLine),
+        text: (previewLines[i]||'').trim()
+    })).filter(p=>p.text);
+
     // 인접한 같은 언어 줄을 하나의 단락으로 합치기
     const paragraphs=[];
-    lines.forEach(line=>{
-        const lang=detectParaLang(line);
+    linePairs.forEach(({lang,text})=>{
         if(paragraphs.length>0 && paragraphs[paragraphs.length-1].lang===lang){
-            paragraphs[paragraphs.length-1].text+=' '+line;
+            paragraphs[paragraphs.length-1].text+=' '+text;
         } else {
-            paragraphs.push({text:line, lang});
+            paragraphs.push({text, lang});
         }
     });
 
