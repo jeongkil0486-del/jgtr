@@ -387,11 +387,9 @@ async function playGoogleTTS(){
     if(speechParts.length===0) return;
     const btn=document.getElementById('pauseBtn');
     btn.innerText='⏳ 생성 중...'; btn.disabled=true;
-    // iOS Safari 동시 요청 제한 대응 — 순차적으로 하나씩 요청
     try {
-        for(let i=0;i<speechParts.length;i++){
-            speechParts[i].audioUrl=await fetchGoogleAudio(speechParts[i]);
-        }
+        const results=await Promise.all(speechParts.map(item=>fetchGoogleAudio(item)));
+        speechParts.forEach((item,i)=>{item.audioUrl=results[i];});
     } catch(e){ alert('Google TTS 오류: '+e.message); btn.disabled=false; resetPauseButton(); return; }
     btn.disabled=false; resetPauseButton();
     currentSentenceIndex=0; isPaused=false;
@@ -414,28 +412,17 @@ async function fetchGoogleAudio(item){
     });
     if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||resp.statusText);}
     const data=await resp.json();
-    // iOS Safari는 Blob URL 재생에 제한이 있어 base64 data URL 방식으로 직접 사용
-    return 'data:audio/mp3;base64,'+data.audioContent;
+    return 'data:audio/mp3;base64,' + data.audioContent;
 }
 
 function playGoogleQueue(){
     if(isPaused||currentSentenceIndex>=speechParts.length){if(currentSentenceIndex>=speechParts.length)resetPauseButton();return;}
     const item=speechParts[currentSentenceIndex];
-    const audio=new Audio();
-    audio.preload='auto';
+    const audio=new Audio(item.audioUrl);
     window._currentAudio=audio;
     audio.onended=function(){currentSentenceIndex++;setTimeout(playGoogleQueue,item.pauseAfter);};
     audio.onerror=function(){currentSentenceIndex++;playGoogleQueue();};
-    audio.src=item.audioUrl;
-    audio.load();
-    const playPromise=audio.play();
-    if(playPromise!==undefined){
-        playPromise.catch(function(e){
-            // iOS autoplay 정책 등으로 재생 실패 시 다음으로 넘어감
-            currentSentenceIndex++;
-            playGoogleQueue();
-        });
-    }
+    audio.play();
 }
 
 function buildSpeechParts(fullText){
@@ -448,20 +435,9 @@ function buildSpeechParts(fullText){
             // 영어 단락 전체를 하나로 → 목소리 완전 통일
             parts.push({text:para.replace(/\n/g,' '),lang:'en-US',pauseAfter:1200});
         } else if(lang==='ja-JP'){
-            const jaText=para.replace(/\n/g,'');
-            const segs=jaText.split(/([。！？、，])/);
-            let acc="";
-            const pushJA=function(text,pause){
-                if(text.length>80){
-                    const sub=text.split(/([、，])/);let sacc="";
-                    sub.forEach(function(s){if(!s)return;if(/^[、，]$/.test(s)){if(sacc.trim())parts.push({text:sacc.trim()+s,lang:"ja-JP",pauseAfter:350});sacc="";}else sacc+=s;});
-                    if(sacc.trim())parts.push({text:sacc.trim(),lang:"ja-JP",pauseAfter:pause});
-                } else {
-                    parts.push({text:text,lang:"ja-JP",pauseAfter:pause});
-                }
-            };
-            segs.forEach(function(p){if(!p)return;if(/^[。！？、，]$/.test(p)){if(acc.trim()){pushJA(acc.trim()+p,/^[、，]$/.test(p)?350:900);acc="";}else acc+=p;}else acc+=p;});
-            if(acc.trim()) pushJA(acc.trim(),1200);
+            const segs=para.replace(/\n/g,'').split(/([。！？])/);let acc="";
+            segs.forEach(p=>{if(!p)return;if(/^[。！？]$/.test(p)){if(acc.trim()){parts.push({text:acc.trim()+p,lang:'ja-JP',pauseAfter:900});acc="";}}else acc+=p;});
+            if(acc.trim()) parts.push({text:acc.trim(),lang:'ja-JP',pauseAfter:1200});
         } else if(lang==='zh-CN'){
             const segs=para.replace(/\n/g,'').split(/([。！？，、])/);let acc="";
             segs.forEach(p=>{if(!p)return;if(/^[。！？，、]$/.test(p)){if(acc.trim()){parts.push({text:acc.trim()+p,lang:'zh-CN',pauseAfter:p==='，'||p==='、'?350:900});acc="";}}else acc+=p;});
@@ -495,12 +471,11 @@ function detectLang(t){
 function detectParaLang(t){
     if(/[ぁ-んァ-ン]/.test(t)) return 'ja-JP';
     if(/[一-龥]/.test(t)) return 'zh-CN';
-    // 한글을 제거한 뒤 영어 비율로 판별 (편명·목적지 치환값에 한글이 섞여도 영어 단락 오인식 방지)
-    const stripped=t.replace(/[가-힣]+/g,'').trim();
-    const enChars=(stripped.match(/[A-Za-z]/g)||[]).length;
-    const total=stripped.replace(/\s/g,'').length;
-    if(total>0 && enChars/total>0.3) return 'en-US';
     if(/[가-힣]/.test(t)) return 'ko-KR';
+    // 한글/일어/한자 없는 경우에만 영어 비율로 판별
+    const enChars=(t.match(/[A-Za-z]/g)||[]).length;
+    const total=t.replace(/\s/g,'').length;
+    if(total>0 && enChars/total>0.5) return 'en-US';
     return 'ko-KR';
 }
 
