@@ -471,11 +471,13 @@ function detectLang(t){
 function detectParaLang(t){
     if(/[ぁ-んァ-ン]/.test(t)) return 'ja-JP';
     if(/[一-龥]/.test(t)) return 'zh-CN';
-    if(/[가-힣]/.test(t)) return 'ko-KR';
-    // 한글/일어/한자 없는 경우에만 영어 비율로 판별
-    const enChars=(t.match(/[A-Za-z]/g)||[]).length;
-    const total=t.replace(/\s/g,'').length;
-    if(total>0 && enChars/total>0.5) return 'en-US';
+    // 편명 숫자 한글(일,이,삼…)을 제거한 뒤 판별
+    const stripped=t.replace(/[일이삼사오육칠팔구영]/g,'').trim();
+    const hasKorean=/[가-힣]/.test(stripped);
+    const enChars=(stripped.match(/[A-Za-z]/g)||[]).length;
+    const total=stripped.replace(/\s/g,'').length;
+    if(!hasKorean && total>0 && enChars/total>0.4) return 'en-US';
+    if(hasKorean) return 'ko-KR';
     return 'ko-KR';
 }
 
