@@ -379,32 +379,26 @@ function detectOrigLang(line){
 function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 
 // ── Google Cloud TTS ─────────────────────────────────
-function playTTS(){ stopTTSComplete(); playGoogleTTS(); }
+// iOS Safari 대응: fetch는 미리 완료, 재생은 onended 콜백 체인으로 연결
+// (async/await 없이 순수 콜백 방식 → iOS user gesture 컨텍스트 유지)
 
-// iOS Safari는 user gesture 컨텍스트 밖 audio.play() 차단 → Web Audio API 사용
-let _audioCtx=null;
-function getAudioCtx(){
-    if(!_audioCtx) _audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-    if(_audioCtx.state==='suspended') _audioCtx.resume();
-    return _audioCtx;
-}
+function playTTS(){ stopTTSComplete(); playGoogleTTS(); }
 
 async function playGoogleTTS(){
     const fullText=document.getElementById('scriptPreview').innerText;
     speechParts=buildSpeechParts(fullText);
     if(speechParts.length===0) return;
-    // user gesture 안에서 AudioContext 초기화 (iOS 잠금 해제)
-    getAudioCtx();
     const btn=document.getElementById('pauseBtn');
     btn.innerText='⏳ 생성 중...'; btn.disabled=true;
     try {
-        for(let i=0;i<speechParts.length;i++){
-            speechParts[i].audioBuffer=await fetchGoogleAudio(speechParts[i]);
-        }
+        // 모든 오디오 미리 fetch (base64 저장)
+        const results=await Promise.all(speechParts.map(item=>fetchGoogleAudio(item)));
+        speechParts.forEach((item,i)=>{ item.audioData=results[i]; });
     } catch(e){ alert('Google TTS 오류: '+e.message); btn.disabled=false; resetPauseButton(); return; }
     btn.disabled=false; resetPauseButton();
     currentSentenceIndex=0; isPaused=false;
-    playGoogleQueue();
+    // 첫 재생은 여기서 직접 시작 (user gesture 컨텍스트 안)
+    playNext();
 }
 
 async function fetchGoogleAudio(item){
@@ -423,36 +417,37 @@ async function fetchGoogleAudio(item){
     });
     if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||resp.statusText);}
     const data=await resp.json();
-    // base64 → ArrayBuffer → AudioBuffer (Web Audio API, iOS 제약 없음)
-    const bin=atob(data.audioContent);
-    const bytes=new Uint8Array(bin.length);
-    for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-    const ctx=getAudioCtx();
-    return await ctx.decodeAudioData(bytes.buffer);
+    return data.audioContent; // base64 문자열 그대로 보관
 }
 
-async function playGoogleQueue(){
-    while(currentSentenceIndex<speechParts.length){
-        if(isPaused) return;
-        const item=speechParts[currentSentenceIndex];
-        await playAudioItem(item);
-        currentSentenceIndex++;
-        if(item.pauseAfter>0) await new Promise(r=>setTimeout(r,item.pauseAfter));
+function playNext(){
+    if(isPaused||currentSentenceIndex>=speechParts.length){
+        if(currentSentenceIndex>=speechParts.length) resetPauseButton();
+        return;
     }
-    resetPauseButton();
+    const item=speechParts[currentSentenceIndex];
+    const audio=new Audio('data:audio/mpeg;base64,'+item.audioData);
+    audio.preload='auto';
+    window._currentAudio=audio;
+    audio.addEventListener('ended',function(){
+        currentSentenceIndex++;
+        if(item.pauseAfter>0){
+            setTimeout(playNext, item.pauseAfter);
+        } else {
+            playNext();
+        }
+    });
+    audio.addEventListener('error',function(){
+        currentSentenceIndex++;
+        playNext();
+    });
+    // iOS: play()는 반드시 동기적으로 바로 호출
+    var p=audio.play();
+    if(p!==undefined){ p.catch(function(){}); }
 }
 
-function playAudioItem(item){
-    return new Promise(resolve=>{
-        const ctx=getAudioCtx();
-        const src=ctx.createBufferSource();
-        src.buffer=item.audioBuffer;
-        src.connect(ctx.destination);
-        src.onended=()=>resolve();
-        window._currentSource=src;
-        src.start(0);
-    });
-}
+// playGoogleQueue는 일시정지 재개용으로만 사용
+function playGoogleQueue(){ playNext(); }
 
 function buildSpeechParts(fullText){
     const parts=[];
@@ -514,19 +509,21 @@ function togglePause(){
     const btn=document.getElementById('pauseBtn');
     if(!isPaused){
         isPaused=true;
-        // Web Audio API: AudioContext suspend으로 일시정지
-        if(_audioCtx) _audioCtx.suspend();
+        if(window._currentAudio){ window._currentAudio.pause(); }
         btn.innerText="▶ 방송 재개";btn.style.background='var(--green)';
     } else {
         isPaused=false;
         btn.innerText="⏸ 일시 정지";btn.style.background='';
-        if(_audioCtx) _audioCtx.resume();
-        playGoogleQueue();
+        if(window._currentAudio){
+            var p=window._currentAudio.play();
+            if(p!==undefined){ p.catch(function(){}); }
+        } else {
+            playNext();
+        }
     }
 }
 function stopTTSComplete(){
-    if(window._currentSource){try{window._currentSource.stop();}catch(e){}window._currentSource=null;}
-    if(_audioCtx){_audioCtx.close();_audioCtx=null;}
+    if(window._currentAudio){ window._currentAudio.pause(); window._currentAudio=null; }
     window.speechSynthesis?.cancel();
     isPaused=false;currentSentenceIndex=0;resetPauseButton();
 }
