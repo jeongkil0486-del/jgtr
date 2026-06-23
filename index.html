@@ -140,7 +140,7 @@ const GOOGLE_TTS_KEY = 'AIzaSyDPwwNLJSnPoADJn41CuZevx7j6-KWRwiQ';
 const GOOGLE_VOICES = {
     'ko-KR':{ languageCode:'ko-KR', name:'ko-KR-Neural2-B', ssmlGender:'FEMALE' },
     'ja-JP':{ languageCode:'ja-JP', name:'ja-JP-Wavenet-B', ssmlGender:'FEMALE' },
-    'en-US':{ languageCode:'en-US', name:'en-US-Wavenet-F', ssmlGender:'FEMALE' },
+    'en-US':{ languageCode:'en-US', name:'en-US-Neural2-F', ssmlGender:'FEMALE' },
     'zh-CN':{ languageCode:'cmn-CN', name:'cmn-CN-Wavenet-D', ssmlGender:'FEMALE' },
 };
 
@@ -467,16 +467,16 @@ function detectLang(t){
     return 'ko-KR';
 }
 
-// 단락 전체 언어 판별 (영어 단락은 영어 문자 비율로)
+// 단락 전체 언어 판별
 function detectParaLang(t){
     if(/[ぁ-んァ-ン]/.test(t)) return 'ja-JP';
     if(/[一-龥]/.test(t)) return 'zh-CN';
-    // 편명 숫자 한글(일,이,삼…)을 제거한 뒤 판별
-    const stripped=t.replace(/[일이삼사오육칠팔구영]/g,'').trim();
-    const hasKorean=/[가-힣]/.test(stripped);
-    const enChars=(stripped.match(/[A-Za-z]/g)||[]).length;
-    const total=stripped.replace(/\s/g,'').length;
-    if(!hasKorean && total>0 && enChars/total>0.4) return 'en-US';
+    // 숫자/공백/편명용 한글 숫자 제거 후 순수 한글·영문자만 비교
+    const onlyLetters=t.replace(/[일이삼사오육칠팔구영\d\s]/g,'');
+    const hasKorean=/[가-힣]/.test(onlyLetters);
+    const enChars=(onlyLetters.match(/[A-Za-z]/g)||[]).length;
+    const total=onlyLetters.length;
+    if(!hasKorean && total>0 && enChars/total>0.5) return 'en-US';
     if(hasKorean) return 'ko-KR';
     return 'ko-KR';
 }
