@@ -417,14 +417,29 @@ async function fetchGoogleAudio(item){
     return 'data:audio/mp3;base64,' + data.audioContent;
 }
 
-function playGoogleQueue(){
-    if(isPaused||currentSentenceIndex>=speechParts.length){if(currentSentenceIndex>=speechParts.length)resetPauseButton();return;}
-    const item=speechParts[currentSentenceIndex];
-    const audio=new Audio(item.audioUrl);
-    window._currentAudio=audio;
-    audio.onended=function(){currentSentenceIndex++;setTimeout(playGoogleQueue,item.pauseAfter);};
-    audio.onerror=function(){currentSentenceIndex++;playGoogleQueue();};
-    audio.play();
+async function playGoogleQueue(){
+    while(currentSentenceIndex<speechParts.length){
+        if(isPaused) return;
+        const item=speechParts[currentSentenceIndex];
+        await playAudioItem(item);
+        currentSentenceIndex++;
+        if(item.pauseAfter>0) await new Promise(r=>setTimeout(r,item.pauseAfter));
+    }
+    resetPauseButton();
+}
+
+function playAudioItem(item){
+    return new Promise(resolve=>{
+        const audio=new Audio();
+        window._currentAudio=audio;
+        audio.onended=()=>resolve();
+        audio.onerror=()=>resolve();
+        audio.oncanplaythrough=function(){
+            if(window._currentAudio===audio) audio.play().catch(()=>resolve());
+        };
+        audio.src=item.audioUrl;
+        audio.load();
+    });
 }
 
 function buildSpeechParts(fullText){
@@ -486,11 +501,17 @@ function detectParaLang(t){
 function togglePause(){
     const btn=document.getElementById('pauseBtn');
     if(!isPaused){
-        isPaused=true;if(window._currentAudio)window._currentAudio.pause();
+        isPaused=true;
+        if(window._currentAudio){window._currentAudio.pause();}
         btn.innerText="▶ 방송 재개";btn.style.background='var(--green)';
     } else {
-        isPaused=false;btn.innerText="⏸ 일시 정지";btn.style.background='';
-        playGoogleQueue();
+        isPaused=false;
+        btn.innerText="⏸ 일시 정지";btn.style.background='';
+        if(window._currentAudio){
+            window._currentAudio.play().catch(()=>{});
+        } else {
+            playGoogleQueue();
+        }
     }
 }
 function stopTTSComplete(){
