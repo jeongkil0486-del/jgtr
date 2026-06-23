@@ -382,7 +382,6 @@ function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 function playTTS(){ stopTTSComplete(); playGoogleTTS(); }
 
 async function playGoogleTTS(){
-    // 미리보기 텍스트 대신 원본 템플릿 기준으로 speechParts 생성 → 언어 판별 정확도 보장
     speechParts=buildSpeechParts();
     if(speechParts.length===0) return;
     const btn=document.getElementById('pauseBtn');
@@ -428,22 +427,18 @@ function playNext(){
     window._currentAudio=audio;
     audio.addEventListener('ended',function(){
         currentSentenceIndex++;
-        if(item.pauseAfter>0){
-            setTimeout(playNext, item.pauseAfter);
-        } else {
-            playNext();
-        }
+        // iOS: setTimeout 안에서 new Audio().play() 차단됨 → 딜레이 없이 즉시 호출
+        // 단락 사이 묵음은 TTS API audioConfig에서 처리
+        playNext();
     });
     audio.addEventListener('error',function(){
         currentSentenceIndex++;
         playNext();
     });
-    // iOS: play()는 반드시 동기적으로 바로 호출
     var p=audio.play();
     if(p!==undefined){ p.catch(function(){}); }
 }
 
-// playGoogleQueue는 일시정지 재개용으로만 사용
 function playGoogleQueue(){ playNext(); }
 
 function buildSpeechParts(){
@@ -472,24 +467,24 @@ function buildSpeechParts(){
     paragraphs.forEach(para=>{
         const {text,lang}=para;
         if(lang==='en-US'){
-            parts.push({text,lang:'en-US',pauseAfter:1200});
+            parts.push({text,lang:'en-US'});
         } else if(lang==='ja-JP'){
             const segs=text.split(/([。！？])/);let acc="";
-            segs.forEach(p=>{if(!p)return;if(/^[。！？]$/.test(p)){if(acc.trim()){parts.push({text:acc.trim()+p,lang:'ja-JP',pauseAfter:900});acc="";}}else acc+=p;});
-            if(acc.trim()) parts.push({text:acc.trim(),lang:'ja-JP',pauseAfter:1200});
+            segs.forEach(p=>{if(!p)return;if(/^[。！？]$/.test(p)){if(acc.trim()){parts.push({text:acc.trim()+p,lang:'ja-JP'});acc="";}}else acc+=p;});
+            if(acc.trim()) parts.push({text:acc.trim(),lang:'ja-JP'});
         } else if(lang==='zh-CN'){
             const segs=text.split(/([。！？，、])/);let acc="";
-            segs.forEach(p=>{if(!p)return;if(/^[。！？，、]$/.test(p)){if(acc.trim()){parts.push({text:acc.trim()+p,lang:'zh-CN',pauseAfter:p==='，'||p==='、'?350:900});acc="";}}else acc+=p;});
-            if(acc.trim()) parts.push({text:acc.trim(),lang:'zh-CN',pauseAfter:1200});
+            segs.forEach(p=>{if(!p)return;if(/^[。！？，、]$/.test(p)){if(acc.trim()){parts.push({text:acc.trim()+p,lang:'zh-CN'});acc="";}}else acc+=p;});
+            if(acc.trim()) parts.push({text:acc.trim(),lang:'zh-CN'});
         } else {
             const segs=text.split(/([.!?,，])/);let acc="";
             segs.forEach(p=>{
                 if(!p)return;
                 if(/^[.!?,，]$/.test(p)){
-                    if(acc.trim().length>1){const t=acc.trim()+(p===','||p==='，'?'':p);parts.push({text:t,lang:'ko-KR',pauseAfter:p===','||p==='，'?350:800});acc="";}
+                    if(acc.trim().length>1){const t=acc.trim()+(p===','||p==='，'?'':p);parts.push({text:t,lang:'ko-KR'});acc="";}
                 } else acc+=p;
             });
-            if(acc.trim().length>1) parts.push({text:acc.trim(),lang:'ko-KR',pauseAfter:1200});
+            if(acc.trim().length>1) parts.push({text:acc.trim(),lang:'ko-KR'});
         }
     });
     return parts;
